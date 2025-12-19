@@ -1,687 +1,559 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>wplace Teleporter</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-      body {
-        font-family: "Inter", sans-serif;
-        background-color: #ffffff;
-        color: #000000;
-      }
-      /* Minimalist scrollbar from Logger */
-      ::-webkit-scrollbar {
-        width: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #fff;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #e5e5e5;
-        border-radius: 3px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #000;
-      }
-
-      /* Input Styling to match Logger */
-      input[type="number"] {
-        -moz-appearance: textfield;
-      }
-      input[type="number"]::-webkit-outer-spin-button,
-      input[type="number"]::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-      }
-      input[type="range"] {
-        -webkit-appearance: none;
-        width: 100%;
-        background: transparent;
-      }
-      input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        height: 16px;
-        width: 16px;
-        background: #000000;
-        cursor: pointer;
-        margin-top: -7px;
-        border-radius: 50%; /* Rounded for softer feel */
-      }
-      input[type="range"]::-webkit-slider-runnable-track {
-        width: 100%;
-        height: 2px;
-        cursor: pointer;
-        background: #e5e5e5;
-      }
-      input:focus {
-        outline: none;
-      }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        /* Minimalist scrollbar from Logger */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fff;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e5e5e5;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #000;
+        }
+        
+        /* Input Styling to match Logger */
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            background: #000000;
+            cursor: pointer;
+            margin-top: -7px;
+            border-radius: 50%; /* Rounded for softer feel */
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 2px;
+            cursor: pointer;
+            background: #e5e5e5;
+        }
+        input:focus {
+            outline: none;
+        }
     </style>
-  </head>
-  <body
-    class="min-h-screen flex flex-col items-center pt-12 px-4 sm:px-6 pb-20"
-  >
+</head>
+<body class="min-h-screen flex flex-col items-center pt-12 px-4 sm:px-6 pb-20">
+
     <!-- Main Container -->
-    <div class="w-full max-w-2xl space-y-10">
-      <!-- Header -->
-      <header class="mb-4">
-        <h1 class="text-4xl font-bold tracking-tight text-black">
-          Teleporter.
-        </h1>
-        <div class="flex justify-between items-baseline mt-2">
-          <p class="text-gray-500 text-sm">wplace navigation tool.</p>
-          <div id="coordPreview" class="font-mono text-xs text-gray-400">
-            Loading...
-          </div>
-        </div>
-      </header>
-
-      <!-- Sticky Controls Section -->
-      <div
-        class="sticky top-0 bg-white/95 backdrop-blur-sm pt-4 pb-6 z-20 border-b border-gray-100 transition-shadow duration-300"
-        id="controls"
-      >
-        <!-- Coordinates Grid -->
-        <div class="grid grid-cols-2 gap-x-8 gap-y-6 mb-6">
-          <!-- Chunk X -->
-          <div class="group">
-            <label
-              class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide"
-              >Chunk X</label
-            >
-            <input
-              type="number"
-              id="chunkX"
-              min="0"
-              max="2047"
-              value="0"
-              placeholder="0"
-              class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono"
-            />
-          </div>
-          <!-- Chunk Y -->
-          <div class="group">
-            <label
-              class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide"
-              >Chunk Y</label
-            >
-            <input
-              type="number"
-              id="chunkY"
-              min="0"
-              max="2047"
-              value="0"
-              placeholder="0"
-              class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono"
-            />
-          </div>
-          <!-- Pixel X -->
-          <div class="group">
-            <label
-              class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide"
-              >Pixel X</label
-            >
-            <input
-              type="number"
-              id="pixelX"
-              min="0"
-              max="999"
-              value="0"
-              placeholder="0"
-              class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono"
-            />
-          </div>
-          <!-- Pixel Y -->
-          <div class="group">
-            <label
-              class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide"
-              >Pixel Y</label
-            >
-            <input
-              type="number"
-              id="pixelY"
-              min="0"
-              max="999"
-              value="0"
-              placeholder="0"
-              class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono"
-            />
-          </div>
-        </div>
-
-        <!-- Zoom & Actions -->
-        <div class="space-y-6">
-          <div>
-            <div class="flex justify-between items-end mb-2">
-              <label
-                class="text-xs font-semibold text-gray-400 uppercase tracking-wide"
-                >Zoom Level</label
-              >
-              <span id="zoomValue" class="text-xs font-mono text-black"
-                >15.73</span
-              >
+    <div class="w-full max-w-4xl space-y-10">
+        
+        <!-- Header -->
+        <header class="mb-4 max-w-2xl mx-auto w-full">
+            <h1 class="text-4xl font-bold tracking-tight text-black">Teleporter.</h1>
+            <div class="flex justify-between items-baseline mt-2">
+                <p class="text-gray-500 text-sm">wplace navigation tool.</p>
+                <div id="coordPreview" class="font-mono text-xs text-gray-400">Loading...</div>
             </div>
-            <input
-              type="range"
-              id="zoomSlider"
-              min="11"
-              max="17"
-              step="0.01"
-              value="15.73"
-            />
-          </div>
+        </header>
 
-          <div class="flex gap-4">
-            <button
-              id="teleportBtn"
-              class="flex-1 bg-black text-white text-sm font-semibold py-4 hover:bg-gray-800 transition-colors uppercase tracking-widest"
-            >
-              Teleport
-            </button>
-            <button
-              id="copyBtn"
-              class="px-6 border-2 border-gray-100 text-gray-500 hover:border-black hover:text-black transition-colors text-xs font-bold uppercase tracking-widest"
-            >
-              Copy
-            </button>
-          </div>
+        <!-- Sticky Controls Section -->
+        <div class="sticky top-0 bg-white/95 backdrop-blur-sm pt-4 pb-6 z-20 border-b border-gray-100 transition-shadow duration-300 max-w-2xl mx-auto w-full" id="controls">
+            
+            <!-- Coordinates Grid -->
+            <div class="grid grid-cols-2 gap-x-8 gap-y-6 mb-6">
+                <!-- Chunk X -->
+                <div class="group">
+                    <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Chunk X</label>
+                    <input type="number" id="chunkX" min="0" max="2047" value="0" placeholder="0"
+                        class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
+                </div>
+                <!-- Chunk Y -->
+                <div class="group">
+                    <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Chunk Y</label>
+                    <input type="number" id="chunkY" min="0" max="2047" value="0" placeholder="0"
+                        class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
+                </div>
+                <!-- Pixel X -->
+                <div class="group">
+                    <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Pixel X</label>
+                    <input type="number" id="pixelX" min="0" max="999" value="0" placeholder="0"
+                        class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
+                </div>
+                <!-- Pixel Y -->
+                <div class="group">
+                    <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Pixel Y</label>
+                    <input type="number" id="pixelY" min="0" max="999" value="0" placeholder="0"
+                        class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
+                </div>
+            </div>
+
+            <!-- Zoom & Actions -->
+            <div class="space-y-6">
+                <div>
+                    <div class="flex justify-between items-end mb-2">
+                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Zoom Level</label>
+                        <span id="zoomValue" class="text-xs font-mono text-black">15.73</span>
+                    </div>
+                    <input type="range" id="zoomSlider" min="11" max="17" step="0.01" value="15.73">
+                </div>
+
+                <div class="flex gap-4">
+                    <button id="teleportBtn" 
+                        class="flex-1 bg-black text-white text-sm font-semibold py-4 hover:bg-gray-800 transition-colors uppercase tracking-widest">
+                        Teleport
+                    </button>
+                    <button id="copyBtn" 
+                        class="px-6 border-2 border-gray-100 text-gray-500 hover:border-black hover:text-black transition-colors text-xs font-bold uppercase tracking-widest">
+                        Copy
+                    </button>
+                </div>
+            </div>
+            
+            <input type="text" id="rawUrl" readonly class="sr-only"> <!-- Hidden input for copying -->
         </div>
 
-        <input type="text" id="rawUrl" readonly class="sr-only" />
-        <!-- Hidden input for copying -->
-      </div>
+        <!-- Lists Section (Split View) -->
+        <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-12">
+            
+            <!-- History Column -->
+            <div class="space-y-6 fade-in">
+                <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                    <h2 class="text-sm font-bold uppercase tracking-widest text-black">History</h2>
+                    <button id="clearHistoryBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-red-500 transition-colors">Clear</button>
+                </div>
+                
+                <div id="historyList" class="space-y-4"></div>
+                
+                <div id="emptyHistory" class="text-center py-10 hidden">
+                    <p class="text-gray-300 text-lg font-light">No teleport history.</p>
+                </div>
+            </div>
 
-      <!-- Lists Section (Tabs) -->
-      <div class="mt-12">
-        <div class="flex space-x-8 border-b border-gray-100 mb-8 pb-2">
-          <button
-            id="tabHistory"
-            class="text-sm font-bold uppercase tracking-widest text-black border-b-2 border-black pb-2 -mb-2.5 transition-colors"
-          >
-            History
-          </button>
-          <button
-            id="tabFavorites"
-            class="text-sm font-bold uppercase tracking-widest text-gray-400 hover:text-black pb-2 -mb-2.5 transition-colors"
-          >
-            Favorites
-          </button>
+            <!-- Favorites Column -->
+            <div class="space-y-6 fade-in">
+                <div class="border-b border-gray-100 pb-2">
+                    <h2 class="text-sm font-bold uppercase tracking-widest text-black">Favorites</h2>
+                </div>
+
+                <!-- Import (Fixed Layout) -->
+                <div class="flex items-center space-x-2 w-full">
+                    <input type="text" id="importUrlInput" 
+                        placeholder="Paste wplace link to save..." 
+                        class="flex-1 bg-transparent text-sm py-2 border-b border-gray-200 focus:border-black outline-none transition-colors duration-300 placeholder-gray-300">
+                    <button id="importUrlBtn" class="px-4 py-2 border border-gray-200 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:border-black hover:text-black transition-colors whitespace-nowrap">
+                        Save
+                    </button>
+                </div>
+
+                <div id="favoritesList" class="space-y-4"></div>
+                
+                <div id="emptyFavorites" class="text-center py-10 hidden">
+                    <p class="text-gray-300 text-lg font-light">No saved favorites.</p>
+                </div>
+            </div>
         </div>
 
-        <!-- History View -->
-        <div id="viewHistory" class="space-y-6 fade-in">
-          <div
-            class="flex justify-between items-center hidden"
-            id="historyControls"
-          >
-            <span class="text-xs text-gray-400">Recent locations</span>
-            <button
-              id="clearHistoryBtn"
-              class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-red-500 transition-colors"
-            >
-              Clear All
-            </button>
-          </div>
-          <div id="historyList" class="space-y-4"></div>
-          <div id="emptyHistory" class="text-center py-10 hidden">
-            <p class="text-gray-300 text-lg font-light">No teleport history.</p>
-          </div>
-        </div>
-
-        <!-- Favorites View -->
-        <div id="viewFavorites" class="space-y-6 hidden fade-in">
-          <!-- Import -->
-          <div class="relative group">
-            <input
-              type="text"
-              id="importUrlInput"
-              placeholder="Paste wplace link to save..."
-              class="w-full bg-transparent text-sm py-2 border-b border-gray-200 focus:border-black outline-none transition-colors duration-300 placeholder-gray-300"
-            />
-            <button
-              id="importUrlBtn"
-              class="absolute right-0 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
-            >
-              Save
-            </button>
-          </div>
-
-          <div id="favoritesList" class="space-y-4"></div>
-          <div id="emptyFavorites" class="text-center py-10 hidden">
-            <p class="text-gray-300 text-lg font-light">No saved favorites.</p>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Minimal Toast -->
-    <div
-      id="toast"
-      class="fixed top-0 left-0 w-full bg-black text-white text-xs font-medium py-3 text-center transform -translate-y-full transition-transform duration-300 z-50 tracking-widest"
-    >
-      COPIED TO CLIPBOARD
+    <div id="toast" class="fixed top-0 left-0 w-full bg-black text-white text-xs font-medium py-3 text-center transform -translate-y-full transition-transform duration-300 z-50 tracking-widest">
+        COPIED TO CLIPBOARD
     </div>
 
     <!-- Logic -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.8.0/proj4.js"></script>
     <script>
-      // --- CONSTANTS & MATH ---
-      const N_TILES_X = 2048,
-        N_TILES_Y = 2048;
-      const N_TILE_PIXELS_X = 1000,
-        N_TILE_PIXELS_Y = 1000;
-      const N_PIXELS_X = N_TILES_X * N_TILE_PIXELS_X;
-      const N_PIXELS_Y = N_TILES_Y * N_TILE_PIXELS_Y;
-      const LON_WEST = -180.0,
-        LON_EAST = 180.0;
-      const LAT_NORTH = 85.05113,
-        LAT_SOUTH = -85.05113;
-      const WPLACE_URL = "https://wplace.live";
+        // --- CONSTANTS & MATH ---
+        const N_TILES_X = 2048, N_TILES_Y = 2048;
+        const N_TILE_PIXELS_X = 1000, N_TILE_PIXELS_Y = 1000;
+        const N_PIXELS_X = N_TILES_X * N_TILE_PIXELS_X;
+        const N_PIXELS_Y = N_TILES_Y * N_TILE_PIXELS_Y;
+        const LON_WEST = -180.0, LON_EAST = 180.0;
+        const LAT_NORTH = 85.05113, LAT_SOUTH = -85.05113;
+        const WPLACE_URL = "https://wplace.live";
 
-      // Projection Setup
-      proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs");
-      proj4.defs(
-        "EPSG:3857",
-        "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs"
-      );
+        // Projection Setup
+        proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs");
+        proj4.defs("EPSG:3857", "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs");
 
-      const FROM_LONLAT_TRAFO = proj4("EPSG:4326", "EPSG:3857");
-      const TO_LONLAT_TRAFO = proj4("EPSG:3857", "EPSG:4326");
-      const [WEST, NORTH] = FROM_LONLAT_TRAFO.forward([LON_WEST, LAT_NORTH]);
-      const [EAST, SOUTH] = FROM_LONLAT_TRAFO.forward([LON_EAST, LAT_SOUTH]);
+        const FROM_LONLAT_TRAFO = proj4("EPSG:4326", "EPSG:3857");
+        const TO_LONLAT_TRAFO = proj4("EPSG:3857", "EPSG:4326");
+        const [WEST, NORTH] = FROM_LONLAT_TRAFO.forward([LON_WEST, LAT_NORTH]);
+        const [EAST, SOUTH] = FROM_LONLAT_TRAFO.forward([LON_EAST, LAT_SOUTH]);
+        
+        const PIXEL_WIDTH = (EAST - WEST) / N_PIXELS_X;
+        const PIXEL_HEIGHT = (SOUTH - NORTH) / N_PIXELS_Y;
+        // Affine coefficients
+        const affine_a = PIXEL_WIDTH, affine_b = 0, affine_c = WEST;
+        const affine_d = 0, affine_e = PIXEL_HEIGHT, affine_f = NORTH;
 
-      const PIXEL_WIDTH = (EAST - WEST) / N_PIXELS_X;
-      const PIXEL_HEIGHT = (SOUTH - NORTH) / N_PIXELS_Y;
-      // Affine coefficients
-      const affine_a = PIXEL_WIDTH,
-        affine_b = 0,
-        affine_c = WEST;
-      const affine_d = 0,
-        affine_e = PIXEL_HEIGHT,
-        affine_f = NORTH;
+        // --- DOM ELEMENTS ---
+        const inputs = {
+            cx: document.getElementById("chunkX"),
+            cy: document.getElementById("chunkY"),
+            px: document.getElementById("pixelX"),
+            py: document.getElementById("pixelY"),
+            zoom: document.getElementById("zoomSlider")
+        };
+        const els = {
+            zoomValue: document.getElementById("zoomValue"),
+            coordPreview: document.getElementById("coordPreview"),
+            rawUrl: document.getElementById("rawUrl"),
+            teleportBtn: document.getElementById("teleportBtn"),
+            copyBtn: document.getElementById("copyBtn"),
+            importInput: document.getElementById("importUrlInput"),
+            importBtn: document.getElementById("importUrlBtn"),
+            toast: document.getElementById("toast"),
+            
+            // Lists
+            historyList: document.getElementById("historyList"),
+            favoritesList: document.getElementById("favoritesList"),
+            emptyHistory: document.getElementById("emptyHistory"),
+            emptyFavorites: document.getElementById("emptyFavorites"),
+            clearHistoryBtn: document.getElementById("clearHistoryBtn"),
+        };
 
-      // --- DOM ELEMENTS ---
-      const inputs = {
-        cx: document.getElementById("chunkX"),
-        cy: document.getElementById("chunkY"),
-        px: document.getElementById("pixelX"),
-        py: document.getElementById("pixelY"),
-        zoom: document.getElementById("zoomSlider"),
-      };
-      const els = {
-        zoomValue: document.getElementById("zoomValue"),
-        coordPreview: document.getElementById("coordPreview"),
-        rawUrl: document.getElementById("rawUrl"),
-        teleportBtn: document.getElementById("teleportBtn"),
-        copyBtn: document.getElementById("copyBtn"),
-        importInput: document.getElementById("importUrlInput"),
-        importBtn: document.getElementById("importUrlBtn"),
-        toast: document.getElementById("toast"),
+        // --- STATE ---
+        let historyLog = [];
+        let favoritesLog = [];
 
-        // Lists
-        historyList: document.getElementById("historyList"),
-        favoritesList: document.getElementById("favoritesList"),
-        emptyHistory: document.getElementById("emptyHistory"),
-        emptyFavorites: document.getElementById("emptyFavorites"),
-        historyControls: document.getElementById("historyControls"),
-        clearHistoryBtn: document.getElementById("clearHistoryBtn"),
+        // --- UTILS (From Logger) ---
+        
+        // Smart Timestamp Formatter
+        function formatTimestamp(isoString) {
+            const date = new Date(isoString);
+            const today = new Date();
+            const isToday = date.getDate() === today.getDate() &&
+                            date.getMonth() === today.getMonth() &&
+                            date.getFullYear() === today.getFullYear();
 
-        // Tabs
-        tabHistory: document.getElementById("tabHistory"),
-        tabFavorites: document.getElementById("tabFavorites"),
-        viewHistory: document.getElementById("viewHistory"),
-        viewFavorites: document.getElementById("viewFavorites"),
-      };
+            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            if (isToday) return `Today, ${timeStr}`;
+            return `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${timeStr}`;
+        }
 
-      // --- STATE ---
-      let historyLog = [];
-      let favoritesLog = [];
-      let currentTab = "history";
+        function showToast(msg) {
+            els.toast.textContent = msg.toUpperCase();
+            els.toast.classList.remove("-translate-y-full");
+            setTimeout(() => els.toast.classList.add("-translate-y-full"), 2000);
+        }
 
-      // --- UTILS (From Logger) ---
+        function getLinkForState(cx, cy, px, py, zoom) {
+             const globalPixelX = cx * N_TILE_PIXELS_X + px + 0.5;
+            const globalPixelY = cy * N_TILE_PIXELS_Y + py + 0.5;
+            const [lon, lat] = pixelToLonLat(globalPixelX, globalPixelY);
+            return `${WPLACE_URL}/?lat=${lat}&lng=${lon}&zoom=${zoom}`;
+        }
 
-      // Smart Timestamp Formatter
-      function formatTimestamp(isoString) {
-        const date = new Date(isoString);
-        const today = new Date();
-        const isToday =
-          date.getDate() === today.getDate() &&
-          date.getMonth() === today.getMonth() &&
-          date.getFullYear() === today.getFullYear();
+        function findFavoriteName(cx, cy, px, py) {
+            const match = favoritesLog.find(f => 
+                f.cx === cx && f.cy === cy && f.px === px && f.py === py
+            );
+            return match ? match.name : null;
+        }
 
-        const timeStr = date.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+        // --- CORE LOGIC ---
 
-        if (isToday) return `Today, ${timeStr}`;
-        return `${date.toLocaleDateString([], {
-          month: "short",
-          day: "numeric",
-        })}, ${timeStr}`;
-      }
+        function pixelToLonLat(col, row) {
+            const x = affine_a * col + affine_b * row + affine_c;
+            const y = affine_d * col + affine_e * row + affine_f;
+            return TO_LONLAT_TRAFO.forward([x, y]);
+        }
 
-      function showToast(msg) {
-        els.toast.textContent = msg.toUpperCase();
-        els.toast.classList.remove("-translate-y-full");
-        setTimeout(() => els.toast.classList.add("-translate-y-full"), 2000);
-      }
+        function lonLatToPixel(lon, lat) {
+            const [x_meters, y_meters] = FROM_LONLAT_TRAFO.forward([lon, lat]);
+            const globalPixelX = (x_meters - affine_c) / affine_a;
+            const globalPixelY = (y_meters - affine_f) / affine_e;
+            return [globalPixelX, globalPixelY];
+        }
 
-      // --- CORE LOGIC ---
+        function updateLink() {
+            // Clamp values
+            let cx = Math.max(0, Math.min(N_TILES_X - 1, parseInt(inputs.cx.value) || 0));
+            let cy = Math.max(0, Math.min(N_TILES_Y - 1, parseInt(inputs.cy.value) || 0));
+            let px = Math.max(0, Math.min(N_TILE_PIXELS_X - 1, parseInt(inputs.px.value) || 0));
+            let py = Math.max(0, Math.min(N_TILE_PIXELS_Y - 1, parseInt(inputs.py.value) || 0));
+            let zoom = parseFloat(inputs.zoom.value);
 
-      function pixelToLonLat(col, row) {
-        const x = affine_a * col + affine_b * row + affine_c;
-        const y = affine_d * col + affine_e * row + affine_f;
-        return TO_LONLAT_TRAFO.forward([x, y]);
-      }
+            const globalPixelX = cx * N_TILE_PIXELS_X + px + 0.5;
+            const globalPixelY = cy * N_TILE_PIXELS_Y + py + 0.5;
+            const [lon, lat] = pixelToLonLat(globalPixelX, globalPixelY);
+            
+            const url = `${WPLACE_URL}/?lat=${lat}&lng=${lon}&zoom=${zoom}`;
 
-      function lonLatToPixel(lon, lat) {
-        const [x_meters, y_meters] = FROM_LONLAT_TRAFO.forward([lon, lat]);
-        const globalPixelX = (x_meters - affine_c) / affine_a;
-        const globalPixelY = (y_meters - affine_f) / affine_e;
-        return [globalPixelX, globalPixelY];
-      }
+            // Update UI
+            els.rawUrl.value = url;
+            els.zoomValue.textContent = zoom.toFixed(2);
+            els.coordPreview.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+            
+            return { url, cx, cy, px, py, zoom };
+        }
 
-      function updateLink() {
-        // Clamp values
-        let cx = Math.max(
-          0,
-          Math.min(N_TILES_X - 1, parseInt(inputs.cx.value) || 0)
-        );
-        let cy = Math.max(
-          0,
-          Math.min(N_TILES_Y - 1, parseInt(inputs.cy.value) || 0)
-        );
-        let px = Math.max(
-          0,
-          Math.min(N_TILE_PIXELS_X - 1, parseInt(inputs.px.value) || 0)
-        );
-        let py = Math.max(
-          0,
-          Math.min(N_TILE_PIXELS_Y - 1, parseInt(inputs.py.value) || 0)
-        );
-        let zoom = parseFloat(inputs.zoom.value);
+        function restoreState(cx, cy, px, py, zoom) {
+            inputs.cx.value = cx;
+            inputs.cy.value = cy;
+            inputs.px.value = px;
+            inputs.py.value = py;
+            inputs.zoom.value = zoom;
+            updateLink();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
 
-        const globalPixelX = cx * N_TILE_PIXELS_X + px + 0.5;
-        const globalPixelY = cy * N_TILE_PIXELS_Y + py + 0.5;
-        const [lon, lat] = pixelToLonLat(globalPixelX, globalPixelY);
+        // --- RENDERERS ---
 
-        const url = `${WPLACE_URL}/?lat=${lat}&lng=${lon}&zoom=${zoom}`;
+        function createListItem(item, type, index) {
+            const div = document.createElement('div');
+            div.className = "group relative flex items-center justify-between py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors -mx-2 px-3 rounded-lg";
+            
+            const isFav = type === 'favorites';
+            
+            // Check if this history item matches a favorite to get a name
+            let displayName;
+            if (isFav) {
+                displayName = item.name;
+            } else {
+                const favName = findFavoriteName(item.cx, item.cy, item.px, item.py);
+                displayName = favName ? favName : `Chunk ${item.cx}, ${item.cy}`;
+            }
 
-        // Update UI
-        els.rawUrl.value = url;
-        els.zoomValue.textContent = zoom.toFixed(2);
-        els.coordPreview.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+            const meta = isFav 
+                ? `C:${item.cx},${item.cy} • P:${item.px},${item.py}`
+                : `${formatTimestamp(item.timestamp)} • P:${item.px},${item.py}`;
 
-        return { url, cx, cy, px, py, zoom };
-      }
-
-      function restoreState(cx, cy, px, py, zoom) {
-        inputs.cx.value = cx;
-        inputs.cy.value = cy;
-        inputs.px.value = px;
-        inputs.py.value = py;
-        inputs.zoom.value = zoom;
-        updateLink();
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-
-      // --- RENDERERS ---
-
-      function createListItem(item, type, index) {
-        const div = document.createElement("div");
-        div.className =
-          "group relative flex items-center justify-between py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors -mx-2 px-3 rounded-lg";
-
-        const isFav = type === "favorites";
-        const title = isFav ? item.name : `Chunk ${item.cx}, ${item.cy}`;
-        const meta = isFav
-          ? `C:${item.cx},${item.cy} • P:${item.px},${item.py}`
-          : `${formatTimestamp(item.timestamp)} • P:${item.px},${item.py}`;
-
-        div.innerHTML = `
-                <div class="flex-1 cursor-pointer" onclick="window.restoreItem('${type}', ${
-          item.id
-        })">
-                    <div class="font-medium text-black">${title}</div>
+            div.innerHTML = `
+                <div class="flex-1 cursor-pointer" onclick="window.restoreItem('${type}', ${item.id})">
+                    <div class="font-medium text-black truncate max-w-[200px]">${displayName}</div>
                     <div class="text-xs font-mono text-gray-400 mt-0.5">${meta}</div>
                 </div>
                 
-                <div class="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    ${
-                      !isFav
-                        ? `
-                        <button onclick="window.addToFav(${item.id})" class="text-gray-400 hover:text-yellow-500 p-1" title="Star">
+                <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    ${!isFav ? `
+                        <button onclick="window.addToFav(${item.id})" class="text-gray-400 hover:text-yellow-500 p-1.5" title="Star">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
                         </button>
-                    `
-                        : `
-                        <button onclick="window.renameFav(${item.id})" class="text-gray-400 hover:text-black p-1" title="Rename">
+                    ` : `
+                        <button onclick="window.renameFav(${item.id})" class="text-gray-400 hover:text-black p-1.5" title="Rename">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                         </button>
-                    `
-                    }
-                    <button onclick="window.deleteItem('${type}', ${
-          item.id
-        })" class="text-gray-300 hover:text-red-500 p-1" title="Delete">
+                    `}
+
+                     <!-- GO Button -->
+                    <button onclick="window.goItem('${type}', ${item.id})" class="text-green-500 hover:text-green-700 font-black text-[10px] uppercase px-2 py-1 hover:bg-green-50 rounded" title="Open Link">
+                        GO!
+                    </button>
+
+                    <button onclick="window.deleteItem('${type}', ${item.id})" class="text-gray-300 hover:text-red-500 p-1.5" title="Delete">
                         &times;
                     </button>
                 </div>
             `;
-        return div;
-      }
-
-      function render() {
-        // Render History
-        els.historyList.innerHTML = "";
-        if (historyLog.length === 0) {
-          els.emptyHistory.classList.remove("hidden");
-          els.historyControls.classList.add("hidden");
-        } else {
-          els.emptyHistory.classList.add("hidden");
-          els.historyControls.classList.remove("hidden");
-          historyLog.forEach((item, idx) =>
-            els.historyList.appendChild(createListItem(item, "history", idx))
-          );
+            return div;
         }
 
-        // Render Favorites
-        els.favoritesList.innerHTML = "";
-        if (favoritesLog.length === 0) {
-          els.emptyFavorites.classList.remove("hidden");
-        } else {
-          els.emptyFavorites.classList.add("hidden");
-          favoritesLog.forEach((item, idx) =>
-            els.favoritesList.appendChild(
-              createListItem(item, "favorites", idx)
-            )
-          );
-        }
-
-        // Save
-        localStorage.setItem("wplace_history", JSON.stringify(historyLog));
-        localStorage.setItem("wplace_favorites", JSON.stringify(favoritesLog));
-      }
-
-      // --- ACTIONS ---
-
-      // Global handlers for HTML inline clicks
-      window.restoreItem = (type, id) => {
-        const source = type === "history" ? historyLog : favoritesLog;
-        const item = source.find((i) => i.id === id);
-        if (item) restoreState(item.cx, item.cy, item.px, item.py, item.zoom);
-      };
-
-      window.deleteItem = (type, id) => {
-        if (!confirm("Delete this item?")) return;
-        if (type === "history") {
-          historyLog = historyLog.filter((i) => i.id !== id);
-        } else {
-          favoritesLog = favoritesLog.filter((i) => i.id !== id);
-        }
-        render();
-      };
-
-      window.addToFav = (id) => {
-        const item = historyLog.find((i) => i.id === id);
-        if (!item) return;
-
-        // Check dupes
-        if (
-          favoritesLog.some(
-            (f) =>
-              f.cx === item.cx &&
-              f.cy === item.cy &&
-              f.px === item.px &&
-              f.py === item.py
-          )
-        ) {
-          showToast("Already in favorites");
-          return;
-        }
-
-        favoritesLog.unshift({
-          ...item,
-          id: Date.now(),
-          name: `Chunk ${item.cx}, ${item.cy}`, // Default name
-        });
-
-        showToast("Added to Favorites");
-        render();
-      };
-
-      window.renameFav = (id) => {
-        const fav = favoritesLog.find((f) => f.id === id);
-        if (!fav) return;
-        const name = prompt("Rename location:", fav.name);
-        if (name && name.trim()) {
-          fav.name = name.trim();
-          render();
-        }
-      };
-
-      // --- INITIALIZATION ---
-
-      function init() {
-        // Load Storage
-        try {
-          const h = localStorage.getItem("wplace_history");
-          const f = localStorage.getItem("wplace_favorites");
-          if (h) historyLog = JSON.parse(h);
-          if (f) favoritesLog = JSON.parse(f);
-        } catch (e) {
-          console.error("Storage corrupt", e);
-        }
-
-        // Event Listeners
-        Object.values(inputs).forEach((el) =>
-          el.addEventListener("input", updateLink)
-        );
-
-        els.teleportBtn.addEventListener("click", () => {
-          const data = updateLink();
-          // Add to history
-          historyLog.unshift({
-            id: Date.now(),
-            timestamp: new Date().toISOString(),
-            ...data,
-          });
-          if (historyLog.length > 50) historyLog.pop();
-          render();
-          window.open(data.url, "_blank");
-        });
-
-        els.copyBtn.addEventListener("click", () => {
-          els.rawUrl.select();
-          document.execCommand("copy");
-          showToast("Link Copied");
-        });
-
-        els.clearHistoryBtn.addEventListener("click", () => {
-          if (confirm("Clear all history?")) {
-            historyLog = [];
-            render();
-          }
-        });
-
-        // Tab Switching
-        const switchTab = (tab) => {
-          currentTab = tab;
-          if (tab === "history") {
-            els.viewHistory.classList.remove("hidden");
-            els.viewFavorites.classList.add("hidden");
-            els.tabHistory.classList.add("text-black", "border-black");
-            els.tabHistory.classList.remove("text-gray-400");
-            els.tabFavorites.classList.remove("text-black", "border-black");
-            els.tabFavorites.classList.add("text-gray-400");
-          } else {
-            els.viewHistory.classList.add("hidden");
-            els.viewFavorites.classList.remove("hidden");
-            els.tabFavorites.classList.add("text-black", "border-black");
-            els.tabFavorites.classList.remove("text-gray-400");
-            els.tabHistory.classList.remove("text-black", "border-black");
-            els.tabHistory.classList.add("text-gray-400");
-          }
-        };
-
-        els.tabHistory.addEventListener("click", () => switchTab("history"));
-        els.tabFavorites.addEventListener("click", () =>
-          switchTab("favorites")
-        );
-
-        // Import Logic
-        els.importBtn.addEventListener("click", () => {
-          const val = els.importInput.value.trim();
-          if (!val) return;
-
-          try {
-            const url = new URL(val);
-            const params = new URLSearchParams(url.search);
-            const lat = parseFloat(params.get("lat"));
-            const lng = parseFloat(params.get("lng"));
-            const zoom = parseFloat(params.get("zoom")) || 15.73;
-
-            if (isNaN(lat) || isNaN(lng)) throw new Error("Invalid coords");
-
-            const [gPx, gPy] = lonLatToPixel(lng, lat);
-            const cx = Math.floor(gPx / N_TILE_PIXELS_X);
-            const cy = Math.floor(gPy / N_TILE_PIXELS_Y);
-
-            if (cx < 0 || cx >= N_TILES_X || cy < 0 || cy >= N_TILES_Y) {
-              showToast("Out of bounds");
-              return;
+        function render() {
+            // Render History
+            els.historyList.innerHTML = '';
+            if (historyLog.length === 0) {
+                els.emptyHistory.classList.remove('hidden');
+            } else {
+                els.emptyHistory.classList.add('hidden');
+                historyLog.forEach((item, idx) => els.historyList.appendChild(createListItem(item, 'history', idx)));
             }
 
+            // Render Favorites
+            els.favoritesList.innerHTML = '';
+            if (favoritesLog.length === 0) {
+                els.emptyFavorites.classList.remove('hidden');
+            } else {
+                els.emptyFavorites.classList.add('hidden');
+                favoritesLog.forEach((item, idx) => els.favoritesList.appendChild(createListItem(item, 'favorites', idx)));
+            }
+
+            // Save
+            localStorage.setItem('wplace_history', JSON.stringify(historyLog));
+            localStorage.setItem('wplace_favorites', JSON.stringify(favoritesLog));
+        }
+
+        // --- ACTIONS ---
+
+        // Global handlers for HTML inline clicks
+        window.restoreItem = (type, id) => {
+            const source = type === 'history' ? historyLog : favoritesLog;
+            const item = source.find(i => i.id === id);
+            if (item) restoreState(item.cx, item.cy, item.px, item.py, item.zoom);
+        }
+
+        window.goItem = (type, id) => {
+             const source = type === 'history' ? historyLog : favoritesLog;
+            const item = source.find(i => i.id === id);
+            if (item) {
+                const url = getLinkForState(item.cx, item.cy, item.px, item.py, item.zoom);
+                // First update local state just in case
+                restoreState(item.cx, item.cy, item.px, item.py, item.zoom);
+                // Then open
+                window.open(url, '_blank');
+            }
+        }
+
+        window.deleteItem = (type, id) => {
+            if (!confirm('Delete this item?')) return;
+            if (type === 'history') {
+                historyLog = historyLog.filter(i => i.id !== id);
+            } else {
+                favoritesLog = favoritesLog.filter(i => i.id !== id);
+            }
+            render();
+        }
+
+        window.addToFav = (id) => {
+            const item = historyLog.find(i => i.id === id);
+            if (!item) return;
+            
+            // Check dupes
+            if (favoritesLog.some(f => f.cx === item.cx && f.cy === item.cy && f.px === item.px && f.py === item.py)) {
+                showToast("Already in favorites");
+                return;
+            }
+
+            const name = prompt("Name this location:", `Chunk ${item.cx}, ${item.cy}`);
+            if (name === null) return; // Cancelled
+
             favoritesLog.unshift({
-              id: Date.now(),
-              name: `Imported ${cx}/${cy}`,
-              cx,
-              cy,
-              px: Math.floor(gPx % N_TILE_PIXELS_X),
-              py: Math.floor(gPy % N_TILE_PIXELS_Y),
-              zoom,
+                ...item,
+                id: Date.now(),
+                name: name.trim() || `Chunk ${item.cx}, ${item.cy}`
+            });
+            
+            showToast("Added to Favorites");
+            render();
+        }
+
+        window.renameFav = (id) => {
+            const fav = favoritesLog.find(f => f.id === id);
+            if (!fav) return;
+            const name = prompt("Rename location:", fav.name);
+            if (name && name.trim()) {
+                fav.name = name.trim();
+                render();
+            }
+        }
+
+        // --- INITIALIZATION ---
+
+        function init() {
+            // Load Storage
+            try {
+                const h = localStorage.getItem('wplace_history');
+                const f = localStorage.getItem('wplace_favorites');
+                if (h) historyLog = JSON.parse(h);
+                if (f) favoritesLog = JSON.parse(f);
+            } catch (e) {
+                console.error("Storage corrupt", e);
+            }
+
+            // Event Listeners
+            Object.values(inputs).forEach(el => el.addEventListener('input', updateLink));
+
+            els.teleportBtn.addEventListener('click', () => {
+                const data = updateLink();
+                // Add to history
+                historyLog.unshift({
+                    id: Date.now(),
+                    timestamp: new Date().toISOString(),
+                    ...data
+                });
+                if (historyLog.length > 50) historyLog.pop();
+                render();
+                window.open(data.url, '_blank');
             });
 
+            els.copyBtn.addEventListener('click', () => {
+                els.rawUrl.select();
+                document.execCommand('copy');
+                showToast("Link Copied");
+            });
+
+            els.clearHistoryBtn.addEventListener('click', () => {
+                if(confirm("Clear all history?")) {
+                    historyLog = [];
+                    render();
+                }
+            });
+
+            // Import Logic
+            els.importBtn.addEventListener('click', () => {
+                const val = els.importInput.value.trim();
+                if(!val) return;
+                
+                try {
+                    const url = new URL(val);
+                    const params = new URLSearchParams(url.search);
+                    const lat = parseFloat(params.get("lat"));
+                    const lng = parseFloat(params.get("lng"));
+                    const zoom = parseFloat(params.get("zoom")) || 15.73;
+
+                    if(isNaN(lat) || isNaN(lng)) throw new Error("Invalid coords");
+
+                    const [gPx, gPy] = lonLatToPixel(lng, lat);
+                    const cx = Math.floor(gPx / N_TILE_PIXELS_X);
+                    const cy = Math.floor(gPy / N_TILE_PIXELS_Y);
+                    
+                    if(cx < 0 || cx >= N_TILES_X || cy < 0 || cy >= N_TILES_Y) {
+                        showToast("Out of bounds");
+                        return;
+                    }
+                    
+                    const px = Math.floor(gPx % N_TILE_PIXELS_X);
+                    const py = Math.floor(gPy % N_TILE_PIXELS_Y);
+
+                    // Check for existing favorite name or default
+                    const defaultName = `Imported ${cx}/${cy}`;
+                    const name = prompt("Name this imported location:", defaultName);
+                    if (name === null) return;
+
+                    favoritesLog.unshift({
+                        id: Date.now(),
+                        name: name.trim() || defaultName,
+                        cx, cy, 
+                        px, py,
+                        zoom
+                    });
+                    
+                    render();
+                    els.importInput.value = '';
+                    showToast("Location Saved");
+                } catch(e) {
+                    showToast("Invalid URL");
+                }
+            });
+
+            // Initial Render
+            updateLink();
             render();
-            els.importInput.value = "";
-            showToast("Location Saved");
-          } catch (e) {
-            showToast("Invalid URL");
-          }
-        });
+        }
 
-        // Initial Render
-        updateLink();
-        render();
-      }
+        init();
 
-      init();
     </script>
-  </body>
+</body>
 </html>
