@@ -163,7 +163,7 @@
             </div>
 
             <!-- Favorites Column -->
-            <div class="space-y-6 fade-in">
+            <div class="space-y-6 fade-in flex flex-col h-full">
                 <div class="border-b border-gray-100 pb-2">
                     <h2 class="text-sm font-bold uppercase tracking-widest text-black">Favorites</h2>
                 </div>
@@ -178,10 +178,21 @@
                     </button>
                 </div>
 
-                <div id="favoritesList" class="space-y-4"></div>
+                <div id="favoritesList" class="space-y-4 flex-grow"></div>
                 
                 <div id="emptyFavorites" class="text-center py-10 hidden">
                     <p class="text-gray-300 text-lg font-light">Paste wplace link or star a history item</p>
+                </div>
+
+                <!-- Data Management Footer -->
+                <div class="pt-6 mt-auto flex justify-end space-x-4 border-t border-gray-50">
+                     <button id="exportBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-black transition-colors" title="Download Favorites">
+                        Export JSON
+                    </button>
+                    <button id="importJsonBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-black transition-colors" title="Load Favorites">
+                        Import JSON
+                    </button>
+                    <input type="file" id="jsonFileInput" accept=".json" class="hidden">
                 </div>
             </div>
         </div>
@@ -242,6 +253,11 @@
             emptyHistory: document.getElementById("emptyHistory"),
             emptyFavorites: document.getElementById("emptyFavorites"),
             clearHistoryBtn: document.getElementById("clearHistoryBtn"),
+
+            // Data Management
+            exportBtn: document.getElementById("exportBtn"),
+            importJsonBtn: document.getElementById("importJsonBtn"),
+            jsonFileInput: document.getElementById("jsonFileInput")
         };
 
         // --- STATE ---
@@ -534,6 +550,78 @@
             localStorage.setItem('wplace_favorites', JSON.stringify(favoritesLog));
         }
 
+        // --- EXPORT / IMPORT LOGIC ---
+
+        function exportFavorites() {
+            if (favoritesLog.length === 0) {
+                showToast("No favorites to export");
+                return;
+            }
+            const dataStr = JSON.stringify(favoritesLog, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = 'wplace_favorites.json';
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        function importFavorites(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (!Array.isArray(importedData)) throw new Error("Invalid format");
+
+                    let addedCount = 0;
+                    
+                    // Merge Strategy: Append only new unique coordinates
+                    importedData.forEach(item => {
+                        // Check if valid structure
+                        if(typeof item.cx === 'undefined' || typeof item.cy === 'undefined') return;
+
+                        const exists = favoritesLog.some(f => 
+                            f.cx === item.cx && 
+                            f.cy === item.cy && 
+                            f.px === item.px && 
+                            f.py === item.py
+                        );
+
+                        if (!exists) {
+                            // Give it a new unique ID to avoid collision
+                            favoritesLog.unshift({
+                                ...item,
+                                id: Date.now() + Math.random(), 
+                                timestamp: item.timestamp || new Date().toISOString()
+                            });
+                            addedCount++;
+                        }
+                    });
+
+                    if (addedCount > 0) {
+                        saveFavorites();
+                        render();
+                        showToast(`Imported ${addedCount} locations`);
+                    } else {
+                        showToast("No new locations found");
+                    }
+
+                } catch(err) {
+                    console.error(err);
+                    showToast("Error reading file");
+                }
+                // Reset input
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+
         // --- INITIALIZATION ---
 
         function init() {
@@ -632,6 +720,11 @@
                     showToast("Invalid URL");
                 }
             });
+
+            // Export / Import Events
+            els.exportBtn.addEventListener('click', exportFavorites);
+            els.importJsonBtn.addEventListener('click', () => els.jsonFileInput.click());
+            els.jsonFileInput.addEventListener('change', importFavorites);
 
             updateLink();
             render();
