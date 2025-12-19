@@ -48,7 +48,7 @@
             background: #000000;
             cursor: pointer;
             margin-top: -7px;
-            border-radius: 50%; /* Rounded for softer feel */
+            border-radius: 50%;
         }
         input[type="range"]::-webkit-slider-runnable-track {
             width: 100%;
@@ -58,6 +58,20 @@
         }
         input:focus {
             outline: none;
+        }
+        /* Inline Edit Input */
+        .inline-edit {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #000;
+            outline: none;
+            padding: 0;
+            margin: 0;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            width: 100%;
+            color: inherit;
         }
     </style>
 </head>
@@ -202,7 +216,6 @@
         
         const PIXEL_WIDTH = (EAST - WEST) / N_PIXELS_X;
         const PIXEL_HEIGHT = (SOUTH - NORTH) / N_PIXELS_Y;
-        // Affine coefficients
         const affine_a = PIXEL_WIDTH, affine_b = 0, affine_c = WEST;
         const affine_d = 0, affine_e = PIXEL_HEIGHT, affine_f = NORTH;
 
@@ -224,7 +237,6 @@
             importBtn: document.getElementById("importUrlBtn"),
             toast: document.getElementById("toast"),
             
-            // Lists
             historyList: document.getElementById("historyList"),
             favoritesList: document.getElementById("favoritesList"),
             emptyHistory: document.getElementById("emptyHistory"),
@@ -236,9 +248,8 @@
         let historyLog = [];
         let favoritesLog = [];
 
-        // --- UTILS (From Logger) ---
+        // --- UTILS ---
         
-        // Smart Timestamp Formatter
         function formatTimestamp(isoString) {
             const date = new Date(isoString);
             const today = new Date();
@@ -272,7 +283,7 @@
             return match ? match.name : null;
         }
 
-        // --- CORE LOGIC ---
+        // --- CORE MATH ---
 
         function pixelToLonLat(col, row) {
             const x = affine_a * col + affine_b * row + affine_c;
@@ -288,7 +299,6 @@
         }
 
         function updateLink() {
-            // Clamp values
             let cx = Math.max(0, Math.min(N_TILES_X - 1, parseInt(inputs.cx.value) || 0));
             let cy = Math.max(0, Math.min(N_TILES_Y - 1, parseInt(inputs.cy.value) || 0));
             let px = Math.max(0, Math.min(N_TILE_PIXELS_X - 1, parseInt(inputs.px.value) || 0));
@@ -301,7 +311,6 @@
             
             const url = `${WPLACE_URL}/?lat=${lat}&lng=${lon}&zoom=${zoom}`;
 
-            // Update UI
             els.rawUrl.value = url;
             els.zoomValue.textContent = zoom.toFixed(2);
             els.coordPreview.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
@@ -324,10 +333,10 @@
         function createListItem(item, type, index) {
             const div = document.createElement('div');
             div.className = "group relative flex items-center justify-between py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors -mx-2 px-3 rounded-lg";
+            div.id = `item-${type}-${item.id}`;
             
             const isFav = type === 'favorites';
             
-            // Check if this history item matches a favorite to get a name
             let displayName;
             if (isFav) {
                 displayName = item.name;
@@ -341,28 +350,31 @@
                 : `${formatTimestamp(item.timestamp)} • P:${item.px},${item.py}`;
 
             div.innerHTML = `
-                <div class="flex-1 cursor-pointer" onclick="window.restoreItem('${type}', ${item.id})">
-                    <div class="font-medium text-black truncate max-w-[200px]">${displayName}</div>
+                <div class="flex-1 cursor-pointer pr-4" onclick="window.restoreItem('${type}', ${item.id})">
+                    <div class="font-medium text-black truncate max-w-[200px] title-text" id="title-${item.id}">${displayName}</div>
                     <div class="text-xs font-mono text-gray-400 mt-0.5">${meta}</div>
                 </div>
                 
-                <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity" id="actions-${item.id}">
                     ${!isFav ? `
-                        <button onclick="window.addToFav(${item.id})" class="text-gray-400 hover:text-yellow-500 p-1.5" title="Star">
+                        <button onclick="event.stopPropagation(); window.addToFav(${item.id})" class="text-gray-400 hover:text-yellow-500 p-1.5" title="Star">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
                         </button>
                     ` : `
-                        <button onclick="window.renameFav(${item.id})" class="text-gray-400 hover:text-black p-1.5" title="Rename">
+                        <button onclick="event.stopPropagation(); window.startRename(${item.id})" class="text-gray-400 hover:text-black p-1.5" title="Rename">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                         </button>
                     `}
 
                      <!-- GO Button -->
-                    <button onclick="window.goItem('${type}', ${item.id})" class="text-green-500 hover:text-green-700 font-black text-[10px] uppercase px-2 py-1 hover:bg-green-50 rounded" title="Open Link">
+                    <button onclick="event.stopPropagation(); window.goItem('${type}', ${item.id})" class="text-green-500 hover:text-green-700 font-black text-[10px] uppercase px-2 py-1 hover:bg-green-50 rounded" title="Open Link">
                         GO!
                     </button>
 
-                    <button onclick="window.deleteItem('${type}', ${item.id})" class="text-gray-300 hover:text-red-500 p-1.5" title="Delete">
+                    <!-- Delete Button (Inline Toggle) -->
+                    <button onclick="event.stopPropagation(); window.toggleDelete(this, '${type}', ${item.id})" 
+                            class="delete-btn text-gray-300 hover:text-red-500 p-1.5 transition-colors duration-200" 
+                            title="Delete">
                         &times;
                     </button>
                 </div>
@@ -396,7 +408,6 @@
 
         // --- ACTIONS ---
 
-        // Global handlers for HTML inline clicks
         window.restoreItem = (type, id) => {
             const source = type === 'history' ? historyLog : favoritesLog;
             const item = source.find(i => i.id === id);
@@ -408,15 +419,37 @@
             const item = source.find(i => i.id === id);
             if (item) {
                 const url = getLinkForState(item.cx, item.cy, item.px, item.py, item.zoom);
-                // First update local state just in case
                 restoreState(item.cx, item.cy, item.px, item.py, item.zoom);
-                // Then open
                 window.open(url, '_blank');
             }
         }
 
-        window.deleteItem = (type, id) => {
-            if (!confirm('Delete this item?')) return;
+        // Inline Delete Toggle Logic
+        window.toggleDelete = (btn, type, id) => {
+            // If already confirming, do the delete
+            if (btn.dataset.confirming === "true") {
+                deleteItem(type, id);
+                return;
+            }
+
+            // Otherwise, enter confirmation mode
+            btn.dataset.confirming = "true";
+            btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`; // Checkmark
+            btn.classList.remove("text-gray-300", "hover:text-red-500");
+            btn.classList.add("text-red-600", "bg-red-50", "rounded");
+            
+            // Auto-reset after 3 seconds
+            setTimeout(() => {
+                if (btn && document.body.contains(btn)) {
+                    btn.dataset.confirming = "false";
+                    btn.innerHTML = "&times;";
+                    btn.classList.add("text-gray-300", "hover:text-red-500");
+                    btn.classList.remove("text-red-600", "bg-red-50", "rounded");
+                }
+            }, 3000);
+        };
+
+        function deleteItem(type, id) {
             if (type === 'history') {
                 historyLog = historyLog.filter(i => i.id !== id);
             } else {
@@ -425,43 +458,85 @@
             render();
         }
 
+        // Inline Rename Logic
+        window.startRename = (id) => {
+            const titleEl = document.getElementById(`title-${id}`);
+            const currentName = titleEl.innerText;
+            
+            // Swap text for input
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentName;
+            input.className = 'inline-edit font-medium text-black';
+            
+            // Handlers
+            input.onblur = () => finishRename(id, input.value, currentName);
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    input.blur();
+                } else if (e.key === 'Escape') {
+                    input.value = currentName; // Revert
+                    finishRename(id, currentName, currentName);
+                }
+                e.stopPropagation(); // Prevent global listeners
+            };
+            
+            // Replace and Focus
+            titleEl.innerHTML = '';
+            titleEl.appendChild(input);
+            input.focus();
+            input.select();
+        };
+
+        function finishRename(id, newName, oldName) {
+            const fav = favoritesLog.find(f => f.id === id);
+            if (!fav) return;
+
+            const finalName = newName.trim() || oldName; // Don't allow empty
+            fav.name = finalName;
+            
+            // Re-render to persist and update any history items that use this name
+            render(); 
+            saveFavorites();
+        }
+
         window.addToFav = (id) => {
             const item = historyLog.find(i => i.id === id);
             if (!item) return;
             
-            // Check dupes
             if (favoritesLog.some(f => f.cx === item.cx && f.cy === item.cy && f.px === item.px && f.py === item.py)) {
                 showToast("Already in favorites");
                 return;
             }
 
-            const name = prompt("Name this location:", `Chunk ${item.cx}, ${item.cy}`);
-            if (name === null) return; // Cancelled
-
+            // Add with default name first
+            const newId = Date.now();
+            const defaultName = `Chunk ${item.cx}, ${item.cy}`;
+            
             favoritesLog.unshift({
                 ...item,
-                id: Date.now(),
-                name: name.trim() || `Chunk ${item.cx}, ${item.cy}`
+                id: newId,
+                name: defaultName
             });
             
-            showToast("Added to Favorites");
+            saveFavorites();
             render();
+            showToast("Added to Favorites");
+            
+            // Immediately trigger rename on the new item
+            // Using timeout to ensure DOM is ready
+            setTimeout(() => {
+                window.startRename(newId);
+            }, 50);
         }
 
-        window.renameFav = (id) => {
-            const fav = favoritesLog.find(f => f.id === id);
-            if (!fav) return;
-            const name = prompt("Rename location:", fav.name);
-            if (name && name.trim()) {
-                fav.name = name.trim();
-                render();
-            }
+        function saveFavorites() {
+            localStorage.setItem('wplace_favorites', JSON.stringify(favoritesLog));
         }
 
         // --- INITIALIZATION ---
 
         function init() {
-            // Load Storage
             try {
                 const h = localStorage.getItem('wplace_history');
                 const f = localStorage.getItem('wplace_favorites');
@@ -471,12 +546,10 @@
                 console.error("Storage corrupt", e);
             }
 
-            // Event Listeners
             Object.values(inputs).forEach(el => el.addEventListener('input', updateLink));
 
             els.teleportBtn.addEventListener('click', () => {
                 const data = updateLink();
-                // Add to history
                 historyLog.unshift({
                     id: Date.now(),
                     timestamp: new Date().toISOString(),
@@ -494,13 +567,23 @@
             });
 
             els.clearHistoryBtn.addEventListener('click', () => {
-                if(confirm("Clear all history?")) {
+                // Inline confirmation for Clear All button
+                const btn = els.clearHistoryBtn;
+                if (btn.innerText === "CLEAR") {
+                     btn.innerText = "CONFIRM?";
+                     btn.classList.add("text-red-500");
+                     setTimeout(() => {
+                         btn.innerText = "CLEAR";
+                         btn.classList.remove("text-red-500");
+                     }, 3000);
+                } else {
                     historyLog = [];
                     render();
+                    btn.innerText = "CLEAR";
+                    btn.classList.remove("text-red-500");
                 }
             });
 
-            // Import Logic
             els.importBtn.addEventListener('click', () => {
                 const val = els.importInput.value.trim();
                 if(!val) return;
@@ -526,14 +609,13 @@
                     const px = Math.floor(gPx % N_TILE_PIXELS_X);
                     const py = Math.floor(gPy % N_TILE_PIXELS_Y);
 
-                    // Check for existing favorite name or default
+                    // Add with default name then rename
+                    const newId = Date.now();
                     const defaultName = `Imported ${cx}/${cy}`;
-                    const name = prompt("Name this imported location:", defaultName);
-                    if (name === null) return;
 
                     favoritesLog.unshift({
-                        id: Date.now(),
-                        name: name.trim() || defaultName,
+                        id: newId,
+                        name: defaultName,
                         cx, cy, 
                         px, py,
                         zoom
@@ -542,12 +624,15 @@
                     render();
                     els.importInput.value = '';
                     showToast("Location Saved");
+                    
+                    // Auto-rename
+                    setTimeout(() => window.startRename(newId), 50);
+
                 } catch(e) {
                     showToast("Invalid URL");
                 }
             });
 
-            // Initial Render
             updateLink();
             render();
         }
