@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>wplace Teleporter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Minimalist slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            background: #000000;
+            cursor: pointer;
+            margin-top: -7px;
+            border-radius: 0;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 2px;
+            cursor: pointer;
+            background: #e5e5e5;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        .input-group:focus-within label {
+            color: #000000;
+        }
+        /* Table Styles */
+        .log-table th {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #9ca3af;
+            font-weight: 700;
+            padding-bottom: 0.5rem;
+            text-align: left;
+        }
+        .log-table td {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.75rem;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .log-table tr:last-child td {
+            border-bottom: none;
+        }
+        .action-btn {
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
+        .log-table tr:hover .action-btn {
+            opacity: 1;
+        }
+        .action-btn:hover {
+            color: #000000;
+        }
+        .scroll-area {
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #e5e5e5 transparent;
+        }
+        .scroll-area::-webkit-scrollbar {
+            width: 4px;
+        }
+        .scroll-area::-webkit-scrollbar-thumb {
+            background-color: #e5e5e5;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen p-6">
+
+    <!-- Main Teleporter Interface -->
+    <div class="w-full max-w-lg space-y-12 mb-16">
+        <header class="text-center space-y-2">
+            <h1 class="text-2xl font-bold tracking-tight">wplace teleporter</h1>
+            <div id="coordPreview" class="text-xs font-mono text-gray-400 h-4"></div>
+        </header>
+
+        <div class="space-y-8">
+            <!-- Coordinates Section -->
+            <div class="grid grid-cols-2 gap-x-8 gap-y-8">
+                <!-- Chunk X -->
+                <div class="input-group">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2 transition-colors">Chunk X</label>
+                    <input type="number" id="chunkX" min="0" max="2047" value="0"
+                           class="w-full bg-transparent text-xl font-mono border-b border-gray-200 py-1 focus:border-black focus:outline-none transition-colors placeholder-gray-200" placeholder="0" />
+                </div>
+                
+                <!-- Chunk Y -->
+                <div class="input-group">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2 transition-colors">Chunk Y</label>
+                    <input type="number" id="chunkY" min="0" max="2047" value="0"
+                           class="w-full bg-transparent text-xl font-mono border-b border-gray-200 py-1 focus:border-black focus:outline-none transition-colors placeholder-gray-200" placeholder="0" />
+                </div>
+
+                <!-- Pixel X -->
+                <div class="input-group">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2 transition-colors">Pixel X (0-999)</label>
+                    <input type="number" id="pixelX" min="0" max="999" value="0"
+                           class="w-full bg-transparent text-xl font-mono border-b border-gray-200 py-1 focus:border-black focus:outline-none transition-colors placeholder-gray-200" placeholder="0" />
+                </div>
+
+                <!-- Pixel Y -->
+                <div class="input-group">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2 transition-colors">Pixel Y (0-999)</label>
+                    <input type="number" id="pixelY" min="0" max="999" value="0"
+                           class="w-full bg-transparent text-xl font-mono border-b border-gray-200 py-1 focus:border-black focus:outline-none transition-colors placeholder-gray-200" placeholder="0" />
+                </div>
+            </div>
+
+            <!-- Zoom Section -->
+            <div class="pt-4">
+                <div class="flex justify-between items-end mb-4">
+                    <label class="text-xs font-bold uppercase tracking-widest text-gray-400">Zoom</label>
+                    <span id="zoomValue" class="text-xs font-mono">15.73</span>
+                </div>
+                <input type="range" id="zoomSlider" min="11" max="17" step="0.01" value="15.73" />
+            </div>
+
+            <!-- Action Section -->
+            <div class="space-y-3 pt-8">
+                <a id="teleporterLink" href="#" target="_blank" 
+                   class="block w-full bg-black text-white text-center text-sm font-medium py-4 hover:bg-gray-800 transition-colors">
+                    TELEPORT
+                </a>
+                
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="rawUrl" readonly 
+                           class="flex-1 font-mono text-xs text-gray-400 bg-transparent border-none focus:ring-0 p-0 selection:bg-gray-200" />
+                    <button id="copyBtn" class="text-xs font-bold uppercase tracking-widest hover:underline">
+                        Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs & Favorites Section -->
+    <div class="w-full max-w-5xl border-t border-gray-100 pt-12 grid grid-cols-1 md:grid-cols-2 gap-12">
+        
+        <!-- History Log -->
+        <div>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-sm font-bold uppercase tracking-widest">History Log</h2>
+                <button id="clearHistoryBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-red-600 transition-colors">Clear</button>
+            </div>
+            <div class="scroll-area pr-2">
+                <table class="w-full log-table text-left collapse">
+                    <thead>
+                        <tr>
+                            <th class="w-24">Time</th>
+                            <th>Coords</th>
+                            <th class="text-right w-16">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+                <div id="emptyHistoryMsg" class="text-xs text-gray-400 italic py-4 text-center hidden">No teleport history yet.</div>
+            </div>
+        </div>
+
+        <!-- Favorites -->
+        <div>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-sm font-bold uppercase tracking-widest">Favorites</h2>
+            </div>
+            <div class="scroll-area pr-2">
+                <table class="w-full log-table text-left collapse">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Coords</th>
+                            <th class="text-right w-16">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="favoritesTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+                <div id="emptyFavoritesMsg" class="text-xs text-gray-400 italic py-4 text-center hidden">No favorites saved.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Minimal Toast -->
+    <div id="toast" class="fixed top-0 left-0 w-full bg-black text-white text-xs font-medium py-3 text-center transform -translate-y-full transition-transform duration-300 z-50">
+        COPIED TO CLIPBOARD
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.8.0/proj4.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- CONSTANTS ---
+            const N_TILES_X = 2048;
+            const N_TILES_Y = 2048;
+            const N_TILE_PIXELS_X = 1000;
+            const N_TILE_PIXELS_Y = 1000;
+            const N_PIXELS_X = N_TILES_X * N_TILE_PIXELS_X;
+            const N_PIXELS_Y = N_TILES_Y * N_TILE_PIXELS_Y;
+
+            const LON_WEST = -180.0;
+            const LON_EAST = 180.0;
+            const LAT_NORTH = 85.05113;
+            const LAT_SOUTH = -85.05113;
+            const WPLACE_URL = "https://wplace.live";
+
+            proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs");
+            proj4.defs("EPSG:3857", "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs");
+
+            const FROM_LONLAT_TRAFO = proj4("EPSG:4326", "EPSG:3857");
+            const TO_LONLAT_TRAFO = proj4("EPSG:3857", "EPSG:4326");
+            const [WEST, NORTH] = FROM_LONLAT_TRAFO.forward([LON_WEST, LAT_NORTH]);
+            const [EAST, SOUTH] = FROM_LONLAT_TRAFO.forward([LON_EAST, LAT_SOUTH]);
+
+            const PIXEL_WIDTH = (EAST - WEST) / N_PIXELS_X;
+            const PIXEL_HEIGHT = (SOUTH - NORTH) / N_PIXELS_Y;
+            const affine_a = PIXEL_WIDTH;
+            const affine_b = 0;
+            const affine_c = WEST;
+            const affine_d = 0;
+            const affine_e = PIXEL_HEIGHT;
+            const affine_f = NORTH;
+
+            // --- DOM ELEMENTS ---
+            const chunkX = document.getElementById('chunkX');
+            const chunkY = document.getElementById('chunkY');
+            const pixelX = document.getElementById('pixelX');
+            const pixelY = document.getElementById('pixelY');
+            const zoomSlider = document.getElementById('zoomSlider');
+            const zoomValue = document.getElementById('zoomValue');
+            const teleporterLink = document.getElementById('teleporterLink');
+            const rawUrl = document.getElementById('rawUrl');
+            const copyBtn = document.getElementById('copyBtn');
+            const toast = document.getElementById('toast');
+            const coordPreview = document.getElementById('coordPreview');
+            const historyTableBody = document.getElementById('historyTableBody');
+            const favoritesTableBody = document.getElementById('favoritesTableBody');
+            const emptyHistoryMsg = document.getElementById('emptyHistoryMsg');
+            const emptyFavoritesMsg = document.getElementById('emptyFavoritesMsg');
+            const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+            // --- STATE MANAGEMENT ---
+            let historyLog = JSON.parse(localStorage.getItem('wplace_history')) || [];
+            let favoritesLog = JSON.parse(localStorage.getItem('wplace_favorites')) || [];
+
+            // --- LOGIC FUNCTIONS ---
+
+            function pixelToLonLat(col, row) {
+                const x = affine_a * col + affine_b * row + affine_c;
+                const y = affine_d * col + affine_e * row + affine_f;
+                return TO_LONLAT_TRAFO.forward([x, y]);
+            }
+
+            function updateLink() {
+                let cx = parseInt(chunkX.value) || 0;
+                let cy = parseInt(chunkY.value) || 0;
+                let px = parseInt(pixelX.value) || 0;
+                let py = parseInt(pixelY.value) || 0;
+                let zoom = parseFloat(zoomSlider.value);
+
+                if (cx < 0) cx = 0; if (cx >= N_TILES_X) cx = N_TILES_X - 1;
+                if (cy < 0) cy = 0; if (cy >= N_TILES_Y) cy = N_TILES_Y - 1;
+                if (px < 0) px = 0; if (px >= N_TILE_PIXELS_X) px = N_TILE_PIXELS_X - 1;
+                if (py < 0) py = 0; if (py >= N_TILE_PIXELS_Y) py = N_TILE_PIXELS_Y - 1;
+
+                const globalPixelX = (cx * N_TILE_PIXELS_X) + px + 0.5;
+                const globalPixelY = (cy * N_TILE_PIXELS_Y) + py + 0.5;
+
+                const [lon, lat] = pixelToLonLat(globalPixelX, globalPixelY);
+                const url = `${WPLACE_URL}/?lat=${lat}&lng=${lon}&zoom=${zoom}`;
+
+                teleporterLink.href = url;
+                rawUrl.value = url;
+                zoomValue.textContent = zoom.toFixed(2);
+                coordPreview.textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+            }
+
+            // --- LOGGING FUNCTIONS ---
+
+            function addToHistory() {
+                const entry = {
+                    id: Date.now(),
+                    timestamp: new Date().toISOString(),
+                    cx: chunkX.value,
+                    cy: chunkY.value,
+                    px: pixelX.value,
+                    py: pixelY.value,
+                    zoom: zoomSlider.value
+                };
+                // Prepend to array
+                historyLog.unshift(entry);
+                // Limit to 1000 entries
+                if (historyLog.length > 1000) historyLog.pop();
+                
+                localStorage.setItem('wplace_history', JSON.stringify(historyLog));
+                renderHistory();
+            }
+
+            function addToFavorites(historyEntry) {
+                // Check if already exists to prevent dupes (optional, but good UX)
+                const exists = favoritesLog.some(fav => fav.cx === historyEntry.cx && fav.cy === historyEntry.cy && fav.px === historyEntry.px && fav.py === historyEntry.py);
+                if (exists) {
+                    showToast('Already in favorites');
+                    return;
+                }
+
+                const favorite = {
+                    ...historyEntry,
+                    id: Date.now(), // New ID for the fav
+                    name: `Chunk ${historyEntry.cx}/${historyEntry.cy}` // Default Name
+                };
+                
+                favoritesLog.unshift(favorite);
+                localStorage.setItem('wplace_favorites', JSON.stringify(favoritesLog));
+                renderFavorites();
+                showToast('Added to Favorites');
+            }
+
+            function removeFromFavorites(id) {
+                favoritesLog = favoritesLog.filter(f => f.id !== id);
+                localStorage.setItem('wplace_favorites', JSON.stringify(favoritesLog));
+                renderFavorites();
+            }
+
+            function renameFavorite(id) {
+                const fav = favoritesLog.find(f => f.id === id);
+                if (!fav) return;
+                
+                const newName = prompt("Enter a name for this location:", fav.name);
+                if (newName !== null && newName.trim() !== "") {
+                    fav.name = newName.trim();
+                    localStorage.setItem('wplace_favorites', JSON.stringify(favoritesLog));
+                    renderFavorites();
+                }
+            }
+
+            function restoreState(cx, cy, px, py, zoom) {
+                chunkX.value = cx;
+                chunkY.value = cy;
+                pixelX.value = px;
+                pixelY.value = py;
+                zoomSlider.value = zoom;
+                updateLink();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            function formatTime(isoString) {
+                const date = new Date(isoString);
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+
+            // --- RENDER FUNCTIONS ---
+
+            function renderHistory() {
+                historyTableBody.innerHTML = '';
+                if (historyLog.length === 0) {
+                    emptyHistoryMsg.classList.remove('hidden');
+                    return;
+                }
+                emptyHistoryMsg.classList.add('hidden');
+
+                historyLog.forEach(entry => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="text-gray-400 align-middle">${formatTime(entry.timestamp)}</td>
+                        <td class="align-middle">
+                            <div class="font-bold text-gray-900">C: ${entry.cx}, ${entry.cy}</div>
+                            <div class="text-[10px] text-gray-400">P: ${entry.px}, ${entry.py}</div>
+                        </td>
+                        <td class="text-right align-middle">
+                            <div class="flex justify-end space-x-3">
+                                <button class="action-btn text-gray-500 hover:text-yellow-500" title="Favorite" onclick="window.addToFav(${entry.id})">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                    </svg>
+                                </button>
+                                <button class="action-btn text-gray-500 hover:text-black" title="Restore" onclick="window.restoreFromHistory(${entry.id})">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    historyTableBody.appendChild(tr);
+                });
+            }
+
+            function renderFavorites() {
+                favoritesTableBody.innerHTML = '';
+                if (favoritesLog.length === 0) {
+                    emptyFavoritesMsg.classList.remove('hidden');
+                    return;
+                }
+                emptyFavoritesMsg.classList.add('hidden');
+
+                favoritesLog.forEach(fav => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="align-middle pr-4">
+                            <div class="flex items-center space-x-2 group">
+                                <span class="font-medium text-gray-900 truncate max-w-[120px]" title="${fav.name}">${fav.name}</span>
+                                <button class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-black transition-opacity" onclick="window.renameFav(${fav.id})">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                        <td class="align-middle">
+                            <div class="text-xs text-gray-500">C: ${fav.cx}, ${fav.cy}</div>
+                        </td>
+                        <td class="text-right align-middle">
+                            <div class="flex justify-end space-x-3">
+                                <button class="action-btn text-gray-500 hover:text-red-500" title="Remove" onclick="window.removeFav(${fav.id})">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                                <button class="action-btn text-gray-500 hover:text-black" title="Restore" onclick="window.restoreFromFav(${fav.id})">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    favoritesTableBody.appendChild(tr);
+                });
+            }
+
+            function showToast(msg) {
+                toast.textContent = msg.toUpperCase();
+                toast.classList.remove('-translate-y-full');
+                setTimeout(() => {
+                    toast.classList.add('-translate-y-full');
+                }, 2000);
+            }
+
+            // --- EXPOSE TO WINDOW FOR INLINE HTML EVENTS ---
+            window.addToFav = (id) => {
+                const item = historyLog.find(i => i.id === id);
+                if (item) addToFavorites(item);
+            };
+            window.restoreFromHistory = (id) => {
+                const item = historyLog.find(i => i.id === id);
+                if (item) restoreState(item.cx, item.cy, item.px, item.py, item.zoom);
+            };
+            window.removeFav = (id) => {
+                removeFromFavorites(id);
+            };
+            window.renameFav = (id) => {
+                renameFavorite(id);
+            };
+            window.restoreFromFav = (id) => {
+                const item = favoritesLog.find(i => i.id === id);
+                if (item) restoreState(item.cx, item.cy, item.px, item.py, item.zoom);
+            };
+
+
+            // --- EVENT LISTENERS ---
+            [chunkX, chunkY, pixelX, pixelY, zoomSlider].forEach(el => {
+                el.addEventListener('input', updateLink);
+            });
+
+            copyBtn.addEventListener('click', () => {
+                rawUrl.select();
+                rawUrl.setSelectionRange(0, 99999);
+                document.execCommand('copy');
+                showToast('Copied to clipboard');
+            });
+
+            teleporterLink.addEventListener('click', () => {
+                addToHistory();
+            });
+
+            clearHistoryBtn.addEventListener('click', () => {
+                if(confirm('Clear history?')) {
+                    historyLog = [];
+                    localStorage.setItem('wplace_history', JSON.stringify([]));
+                    renderHistory();
+                }
+            });
+
+            // Initial Render
+            updateLink();
+            renderHistory();
+            renderFavorites();
+        });
+    </script>
+</body>
+</html>
