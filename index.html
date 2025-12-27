@@ -9,22 +9,22 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #ffffff;
+            background-color: #f9fafb; /* Slight grey background for better contrast with panels */
             color: #000000;
         }
-        /* Minimalist scrollbar from Logger */
+        /* Minimalist scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #fff;
+            background: transparent;
         }
         ::-webkit-scrollbar-thumb {
-            background: #e5e5e5;
+            background: #d1d5db;
             border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #000;
+            background: #9ca3af;
         }
         
         /* Input Styling */
@@ -43,11 +43,11 @@
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
+            height: 14px;
+            width: 14px;
             background: #000000;
             cursor: pointer;
-            margin-top: -7px;
+            margin-top: -6px;
             border-radius: 50%;
         }
         input[type="range"]::-webkit-slider-runnable-track {
@@ -73,161 +73,120 @@
             color: inherit;
         }
 
-        /* --- STICKY HEADER COMPACT MODE --- */
+        /* Compact Top Panel */
         #top-panel {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-bottom: 1px solid transparent;
-        }
-        
-        #top-panel.compact {
-            background-color: rgba(255, 255, 255, 0.98);
-            border-bottom: 1px solid #f3f4f6;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            padding-bottom: 0.5rem; 
-        }
-
-        #top-panel.compact .main-header {
-             margin-bottom: 0;
-             display: none; /* Hide big title in compact mode to save more space */
-        }
-        
-        #top-panel.compact #controls {
-            padding-top: 0.5rem;
-            padding-bottom: 0;
-        }
-
-        #top-panel.compact .control-grid,
-        #top-panel.compact .zoom-section {
-            display: none;
-        }
-
-        #top-panel.compact .action-buttons button {
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
-            font-size: 0.75rem;
-            letter-spacing: 0.1em;
-        }
-
-        #top-panel.compact #compact-info {
-            display: flex;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            z-index: 50;
         }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
 
-    <!-- Fixed Top Panel (Header + Controls) -->
-    <div id="top-panel" class="w-full flex-none bg-white z-30">
-        <div class="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-6">
+    <!-- Fixed Compact Top Panel (approx 25% height dependent on content) -->
+    <div id="top-panel" class="w-full flex-none p-4 sm:px-6">
+        <div class="max-w-4xl mx-auto w-full space-y-4">
             
-            <!-- Header -->
-            <header class="main-header mb-4 transition-all duration-300">
-                <h1 class="text-4xl font-bold tracking-tight text-black">Teleporter.</h1>
-                <div class="flex justify-between items-baseline mt-2">
-                    <p class="text-gray-500 text-sm">wplace navigation tool.</p>
-                    <div id="coordPreview" class="font-mono text-xs text-gray-400">Loading...</div>
+            <!-- Header Row -->
+            <header class="flex justify-between items-baseline">
+                <div class="flex items-baseline gap-3">
+                    <h1 class="text-xl font-bold tracking-tight text-black">Teleporter.</h1>
+                    <p class="text-gray-400 text-xs hidden sm:inline-block">navigation tool</p>
                 </div>
+                <div id="coordPreview" class="font-mono text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">Loading...</div>
             </header>
 
-            <!-- Controls -->
-            <div id="controls" class="w-full pb-6 transition-all duration-300">
-                <!-- Compact Info (Visible only when compact) -->
-                <div id="compact-info" class="hidden justify-between items-center text-[10px] font-mono text-gray-500 mb-2 fade-in">
-                    <div class="flex flex-col">
-                        <span class="font-bold text-black text-sm tracking-tight">Teleporter.</span>
-                        <span id="compactCoords" class="text-gray-500">C: 0,0 • P: 0,0</span>
-                    </div>
-                    <span id="compactZoom">Z: 15.73</span>
+            <!-- Controls Row 1: Coordinates -->
+            <div class="grid grid-cols-4 gap-4">
+                <div class="group">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Chunk X</label>
+                    <input type="number" id="chunkX" min="0" max="2047" value="0" placeholder="0" class="w-full bg-transparent text-sm font-semibold py-1 border-b border-gray-200 focus:border-black transition-colors placeholder-gray-300 font-mono">
                 </div>
-
-                <!-- Full Coordinates Grid -->
-                <div class="grid grid-cols-2 gap-x-8 gap-y-6 mb-6 control-grid">
-                    <div class="group">
-                        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Chunk X</label>
-                        <input type="number" id="chunkX" min="0" max="2047" value="0" placeholder="0" class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
-                    </div>
-                    <div class="group">
-                        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Chunk Y</label>
-                        <input type="number" id="chunkY" min="0" max="2047" value="0" placeholder="0" class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
-                    </div>
-                    <div class="group">
-                        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Pixel X</label>
-                        <input type="number" id="pixelX" min="0" max="999" value="0" placeholder="0" class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
-                    </div>
-                    <div class="group">
-                        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Pixel Y</label>
-                        <input type="number" id="pixelY" min="0" max="999" value="0" placeholder="0" class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
-                    </div>
+                <div class="group">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Chunk Y</label>
+                    <input type="number" id="chunkY" min="0" max="2047" value="0" placeholder="0" class="w-full bg-transparent text-sm font-semibold py-1 border-b border-gray-200 focus:border-black transition-colors placeholder-gray-300 font-mono">
                 </div>
-
-                <!-- Zoom & Actions -->
-                <div class="space-y-6">
-                    <div class="zoom-section">
-                        <div class="flex justify-between items-end mb-2">
-                            <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Zoom Level</label>
-                            <span id="zoomValue" class="text-xs font-mono text-black">15.73</span>
-                        </div>
-                        <input type="range" id="zoomSlider" min="11" max="17" step="0.01" value="15.73">
-                    </div>
-
-                    <div class="flex gap-4 action-buttons">
-                        <button id="teleportBtn" class="flex-1 bg-black text-white text-sm font-semibold py-4 hover:bg-gray-800 transition-colors uppercase tracking-widest shadow-sm">
-                            Teleport
-                        </button>
-                        <button id="copyBtn" class="px-6 border-2 border-gray-100 text-gray-500 hover:border-black hover:text-black transition-colors text-xs font-bold uppercase tracking-widest">
-                            Copy
-                        </button>
-                    </div>
+                <div class="group">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Pixel X</label>
+                    <input type="number" id="pixelX" min="0" max="999" value="0" placeholder="0" class="w-full bg-transparent text-sm font-semibold py-1 border-b border-gray-200 focus:border-black transition-colors placeholder-gray-300 font-mono">
                 </div>
-                
-                <input type="text" id="rawUrl" readonly class="sr-only">
+                <div class="group">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Pixel Y</label>
+                    <input type="number" id="pixelY" min="0" max="999" value="0" placeholder="0" class="w-full bg-transparent text-sm font-semibold py-1 border-b border-gray-200 focus:border-black transition-colors placeholder-gray-300 font-mono">
+                </div>
             </div>
+
+            <!-- Controls Row 2: Zoom & Actions -->
+            <div class="flex items-end gap-6 pt-1">
+                <!-- Zoom (Takes available space) -->
+                <div class="flex-1 pb-1">
+                    <div class="flex justify-between items-end mb-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Zoom</label>
+                        <span id="zoomValue" class="text-[10px] font-mono text-black">15.73</span>
+                    </div>
+                    <input type="range" id="zoomSlider" min="11" max="17" step="0.01" value="15.73" class="block">
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-2 w-1/2 max-w-[240px]">
+                    <button id="copyBtn" class="px-3 py-2 border border-gray-200 rounded text-gray-500 hover:border-black hover:text-black transition-colors text-[10px] font-bold uppercase tracking-widest h-9">
+                        Copy
+                    </button>
+                    <button id="teleportBtn" class="flex-1 bg-black text-white text-[10px] font-bold py-2 rounded hover:bg-gray-800 transition-colors uppercase tracking-widest h-9 shadow-sm">
+                        Teleport
+                    </button>
+                </div>
+            </div>
+            
+            <input type="text" id="rawUrl" readonly class="sr-only">
         </div>
     </div>
 
-    <!-- Scrollable Content Area -->
-    <main id="scroll-content" class="flex-1 overflow-y-auto w-full">
-        <div class="max-w-4xl mx-auto w-full px-4 sm:px-6 py-12">
+    <!-- Scrollable Content Area (Fills remaining space) -->
+    <main class="flex-1 overflow-y-auto w-full bg-white">
+        <div class="max-w-4xl mx-auto w-full px-4 sm:px-6 py-8">
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full">
                 <!-- History Column -->
-                <div class="space-y-6 fade-in">
-                    <div class="flex justify-between items-center border-b border-gray-100 pb-2 bg-white sticky top-0 z-10 pt-2">
-                        <h2 class="text-sm font-bold uppercase tracking-widest text-black">History</h2>
-                        <button id="clearHistoryBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-red-500 transition-colors">Clear</button>
+                <div class="flex flex-col">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2 mb-4 sticky top-0 bg-white z-10 pt-2">
+                        <h2 class="text-xs font-bold uppercase tracking-widest text-black">History</h2>
+                        <button id="clearHistoryBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors">Clear</button>
                     </div>
                     
-                    <div id="historyList" class="space-y-4"></div>
+                    <div id="historyList" class="space-y-3"></div>
                     <div id="emptyHistory" class="text-center py-10 hidden">
-                        <p class="text-gray-300 text-lg font-light">No teleport history.</p>
+                        <p class="text-gray-300 text-sm font-light">No teleport history.</p>
                     </div>
                 </div>
 
                 <!-- Favorites Column -->
-                <div class="space-y-6 fade-in flex flex-col h-full">
-                    <div class="border-b border-gray-100 pb-2 bg-white sticky top-0 z-10 pt-2">
-                        <h2 class="text-sm font-bold uppercase tracking-widest text-black">Favorites</h2>
+                <div class="flex flex-col h-full">
+                    <div class="border-b border-gray-100 pb-2 mb-4 sticky top-0 bg-white z-10 pt-2">
+                        <h2 class="text-xs font-bold uppercase tracking-widest text-black">Favorites</h2>
                     </div>
 
-                    <div class="flex items-center space-x-2 w-full">
-                        <input type="text" id="importUrlInput" placeholder="Paste wplace link to save..." class="flex-1 bg-transparent text-sm py-2 border-b border-gray-200 focus:border-black outline-none transition-colors duration-300 placeholder-gray-300">
-                        <button id="importUrlBtn" class="px-4 py-2 border border-gray-200 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:border-black hover:text-black transition-colors whitespace-nowrap">Save</button>
+                    <div class="flex items-center space-x-2 w-full mb-4">
+                        <input type="text" id="importUrlInput" placeholder="Paste wplace link..." class="flex-1 bg-transparent text-xs py-1.5 border-b border-gray-200 focus:border-black outline-none transition-colors duration-300 placeholder-gray-300">
+                        <button id="importUrlBtn" class="px-3 py-1.5 border border-gray-200 rounded-sm text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:border-black hover:text-black transition-colors whitespace-nowrap">Save</button>
                     </div>
 
-                    <div id="favoritesList" class="space-y-4 flex-grow"></div>
+                    <div id="favoritesList" class="space-y-3 flex-grow"></div>
                     
                     <div id="emptyFavorites" class="text-center py-10 hidden">
-                        <p class="text-gray-300 text-lg font-light">Paste wplace link or star a history item</p>
+                        <p class="text-gray-300 text-sm font-light">Paste wplace link or star a history item</p>
                     </div>
 
-                    <div class="pt-6 mt-auto flex justify-end space-x-4 border-t border-gray-50">
-                        <button id="exportBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-black transition-colors" title="Download Favorites">Export JSON</button>
-                        <button id="importJsonBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-black transition-colors" title="Load Favorites">Import JSON</button>
+                    <div class="pt-8 mt-8 flex justify-end space-x-4 border-t border-gray-50">
+                        <button id="exportBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-black transition-colors">Export JSON</button>
+                        <button id="importJsonBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-black transition-colors">Import JSON</button>
                         <input type="file" id="jsonFileInput" accept=".json" class="hidden">
                     </div>
                 </div>
             </div>
 
-            <div class="w-full text-center pt-16 pb-8 border-t border-transparent">
+            <div class="w-full text-center pt-12 pb-4">
                  <a href="https://42rk.github.io/" target="_blank" class="text-[10px] font-medium text-gray-300 hover:text-black transition-colors no-underline tracking-widest uppercase">
                     more at 42rk.github.io
                 </a>
@@ -292,12 +251,6 @@
             exportBtn: document.getElementById("exportBtn"),
             importJsonBtn: document.getElementById("importJsonBtn"),
             jsonFileInput: document.getElementById("jsonFileInput"),
-            
-            // Layout Elements
-            topPanel: document.getElementById("top-panel"),
-            scrollContent: document.getElementById("scroll-content"),
-            compactCoords: document.getElementById("compactCoords"),
-            compactZoom: document.getElementById("compactZoom")
         };
 
         // --- STATE ---
@@ -371,10 +324,6 @@
             els.zoomValue.textContent = zoom.toFixed(2);
             els.coordPreview.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
             
-            // Update Compact Info
-            els.compactCoords.textContent = `C: ${cx},${cy} • P: ${px},${py}`;
-            els.compactZoom.textContent = `Z: ${zoom.toFixed(2)}`;
-
             return { url, cx, cy, px, py, zoom };
         }
 
@@ -385,15 +334,13 @@
             inputs.py.value = py;
             inputs.zoom.value = zoom;
             updateLink();
-            // Scroll to top of content area to indicate refresh, but keep header visible
-            els.scrollContent.scrollTo({ top: 0, behavior: "smooth" });
         }
 
         // --- RENDERERS ---
 
         function createListItem(item, type, index) {
             const div = document.createElement('div');
-            div.className = "group relative flex items-center justify-between py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors -mx-2 px-3 rounded-lg";
+            div.className = "group relative flex items-center justify-between py-2 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors -mx-2 px-3 rounded-md";
             div.id = `item-${type}-${item.id}`;
             
             const isFav = type === 'favorites';
@@ -412,29 +359,29 @@
 
             div.innerHTML = `
                 <div class="flex-1 cursor-pointer pr-4" onclick="window.restoreItem('${type}', ${item.id})">
-                    <div class="font-medium text-black truncate max-w-[200px] title-text" id="title-${item.id}">${displayName}</div>
-                    <div class="text-xs font-mono text-gray-400 mt-0.5">${meta}</div>
+                    <div class="font-medium text-black truncate max-w-[200px] text-sm title-text" id="title-${item.id}">${displayName}</div>
+                    <div class="text-[10px] font-mono text-gray-400 mt-0.5">${meta}</div>
                 </div>
                 
                 <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity" id="actions-${item.id}">
                     ${!isFav ? `
-                        <button onclick="event.stopPropagation(); window.addToFav(${item.id})" class="text-gray-400 hover:text-yellow-500 p-1.5" title="Star">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                        <button onclick="event.stopPropagation(); window.addToFav(${item.id})" class="text-gray-400 hover:text-yellow-500 p-1" title="Star">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
                         </button>
                     ` : `
-                        <button onclick="event.stopPropagation(); window.startRename(${item.id})" class="text-gray-400 hover:text-black p-1.5" title="Rename">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                        <button onclick="event.stopPropagation(); window.startRename(${item.id})" class="text-gray-400 hover:text-black p-1" title="Rename">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                         </button>
                     `}
 
                      <!-- GO Button -->
-                    <button onclick="event.stopPropagation(); window.goItem('${type}', ${item.id})" class="text-green-500 hover:text-green-700 font-black text-[10px] uppercase px-2 py-1 hover:bg-green-50 rounded" title="Open Link">
-                        GO!
+                    <button onclick="event.stopPropagation(); window.goItem('${type}', ${item.id})" class="text-green-500 hover:text-green-700 font-black text-[9px] uppercase px-1.5 py-0.5 hover:bg-green-50 rounded border border-transparent hover:border-green-100" title="Open Link">
+                        GO
                     </button>
 
                     <!-- Delete Button (Inline Toggle) -->
                     <button onclick="event.stopPropagation(); window.toggleDelete(this, '${type}', ${item.id})" 
-                            class="delete-btn text-gray-300 hover:text-red-500 p-1.5 transition-colors duration-200" 
+                            class="delete-btn text-gray-300 hover:text-red-500 p-1 transition-colors duration-200" 
                             title="Delete">
                         &times;
                     </button>
@@ -490,7 +437,7 @@
                 return;
             }
             btn.dataset.confirming = "true";
-            btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+            btn.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
             btn.classList.remove("text-gray-300", "hover:text-red-500");
             btn.classList.add("text-red-600", "bg-red-50", "rounded");
             
@@ -663,15 +610,6 @@
 
             updateLink();
             render();
-
-            // Compact Mode Logic on Scroll Container
-            els.scrollContent.addEventListener('scroll', () => {
-                if (els.scrollContent.scrollTop > 20) {
-                    els.topPanel.classList.add('compact');
-                } else {
-                    els.topPanel.classList.remove('compact');
-                }
-            });
         }
 
         init();
