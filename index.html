@@ -27,7 +27,7 @@
             background: #000;
         }
         
-        /* Input Styling to match Logger */
+        /* Input Styling */
         input[type="number"] {
             -moz-appearance: textfield;
         }
@@ -59,7 +59,6 @@
         input:focus {
             outline: none;
         }
-        /* Inline Edit Input */
         .inline-edit {
             background: transparent;
             border: none;
@@ -73,138 +72,168 @@
             width: 100%;
             color: inherit;
         }
+
+        /* --- STICKY HEADER COMPACT MODE --- */
+        #top-panel {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 1px solid transparent;
+        }
+        
+        #top-panel.compact {
+            background-color: rgba(255, 255, 255, 0.98);
+            border-bottom: 1px solid #f3f4f6;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            padding-bottom: 0.5rem; 
+        }
+
+        #top-panel.compact .main-header {
+             margin-bottom: 0;
+             display: none; /* Hide big title in compact mode to save more space */
+        }
+        
+        #top-panel.compact #controls {
+            padding-top: 0.5rem;
+            padding-bottom: 0;
+        }
+
+        #top-panel.compact .control-grid,
+        #top-panel.compact .zoom-section {
+            display: none;
+        }
+
+        #top-panel.compact .action-buttons button {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+        }
+
+        #top-panel.compact #compact-info {
+            display: flex;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center pt-12 px-4 sm:px-6 pb-20">
+<body class="h-screen flex flex-col overflow-hidden">
 
-    <!-- Main Container -->
-    <div class="w-full max-w-4xl space-y-10">
-        
-        <!-- Header -->
-        <header class="mb-4 max-w-2xl mx-auto w-full">
-            <h1 class="text-4xl font-bold tracking-tight text-black">Teleporter.</h1>
-            <div class="flex justify-between items-baseline mt-2">
-                <p class="text-gray-500 text-sm">wplace navigation tool.</p>
-                <div id="coordPreview" class="font-mono text-xs text-gray-400">Loading...</div>
-            </div>
-        </header>
-
-        <!-- Sticky Controls Section -->
-        <div class="sticky top-0 bg-white/95 backdrop-blur-sm pt-4 pb-6 z-20 border-b border-gray-100 transition-shadow duration-300 max-w-2xl mx-auto w-full" id="controls">
+    <!-- Fixed Top Panel (Header + Controls) -->
+    <div id="top-panel" class="w-full flex-none bg-white z-30">
+        <div class="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-6">
             
-            <!-- Coordinates Grid -->
-            <div class="grid grid-cols-2 gap-x-8 gap-y-6 mb-6">
-                <!-- Chunk X -->
-                <div class="group">
-                    <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Chunk X</label>
-                    <input type="number" id="chunkX" min="0" max="2047" value="0" placeholder="0"
-                        class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
+            <!-- Header -->
+            <header class="main-header mb-4 transition-all duration-300">
+                <h1 class="text-4xl font-bold tracking-tight text-black">Teleporter.</h1>
+                <div class="flex justify-between items-baseline mt-2">
+                    <p class="text-gray-500 text-sm">wplace navigation tool.</p>
+                    <div id="coordPreview" class="font-mono text-xs text-gray-400">Loading...</div>
                 </div>
-                <!-- Chunk Y -->
-                <div class="group">
-                    <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Chunk Y</label>
-                    <input type="number" id="chunkY" min="0" max="2047" value="0" placeholder="0"
-                        class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
-                </div>
-                <!-- Pixel X -->
-                <div class="group">
-                    <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Pixel X</label>
-                    <input type="number" id="pixelX" min="0" max="999" value="0" placeholder="0"
-                        class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
-                </div>
-                <!-- Pixel Y -->
-                <div class="group">
-                    <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Pixel Y</label>
-                    <input type="number" id="pixelY" min="0" max="999" value="0" placeholder="0"
-                        class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
-                </div>
-            </div>
+            </header>
 
-            <!-- Zoom & Actions -->
-            <div class="space-y-6">
-                <div>
-                    <div class="flex justify-between items-end mb-2">
-                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Zoom Level</label>
-                        <span id="zoomValue" class="text-xs font-mono text-black">15.73</span>
+            <!-- Controls -->
+            <div id="controls" class="w-full pb-6 transition-all duration-300">
+                <!-- Compact Info (Visible only when compact) -->
+                <div id="compact-info" class="hidden justify-between items-center text-[10px] font-mono text-gray-500 mb-2 fade-in">
+                    <div class="flex flex-col">
+                        <span class="font-bold text-black text-sm tracking-tight">Teleporter.</span>
+                        <span id="compactCoords" class="text-gray-500">C: 0,0 • P: 0,0</span>
                     </div>
-                    <input type="range" id="zoomSlider" min="11" max="17" step="0.01" value="15.73">
+                    <span id="compactZoom">Z: 15.73</span>
                 </div>
 
-                <div class="flex gap-4">
-                    <button id="teleportBtn" 
-                        class="flex-1 bg-black text-white text-sm font-semibold py-4 hover:bg-gray-800 transition-colors uppercase tracking-widest">
-                        Teleport
-                    </button>
-                    <button id="copyBtn" 
-                        class="px-6 border-2 border-gray-100 text-gray-500 hover:border-black hover:text-black transition-colors text-xs font-bold uppercase tracking-widest">
-                        Copy
-                    </button>
+                <!-- Full Coordinates Grid -->
+                <div class="grid grid-cols-2 gap-x-8 gap-y-6 mb-6 control-grid">
+                    <div class="group">
+                        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Chunk X</label>
+                        <input type="number" id="chunkX" min="0" max="2047" value="0" placeholder="0" class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
+                    </div>
+                    <div class="group">
+                        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Chunk Y</label>
+                        <input type="number" id="chunkY" min="0" max="2047" value="0" placeholder="0" class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
+                    </div>
+                    <div class="group">
+                        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Pixel X</label>
+                        <input type="number" id="pixelX" min="0" max="999" value="0" placeholder="0" class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
+                    </div>
+                    <div class="group">
+                        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Pixel Y</label>
+                        <input type="number" id="pixelY" min="0" max="999" value="0" placeholder="0" class="w-full bg-transparent text-xl py-2 border-b-2 border-gray-100 focus:border-black transition-colors duration-300 placeholder-gray-200 font-mono">
+                    </div>
                 </div>
-            </div>
-            
-            <input type="text" id="rawUrl" readonly class="sr-only"> <!-- Hidden input for copying -->
-        </div>
 
-        <!-- Lists Section (Split View) -->
-        <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-12">
-            
-            <!-- History Column -->
-            <div class="space-y-6 fade-in">
-                <div class="flex justify-between items-center border-b border-gray-100 pb-2">
-                    <h2 class="text-sm font-bold uppercase tracking-widest text-black">History</h2>
-                    <button id="clearHistoryBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-red-500 transition-colors">Clear</button>
+                <!-- Zoom & Actions -->
+                <div class="space-y-6">
+                    <div class="zoom-section">
+                        <div class="flex justify-between items-end mb-2">
+                            <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Zoom Level</label>
+                            <span id="zoomValue" class="text-xs font-mono text-black">15.73</span>
+                        </div>
+                        <input type="range" id="zoomSlider" min="11" max="17" step="0.01" value="15.73">
+                    </div>
+
+                    <div class="flex gap-4 action-buttons">
+                        <button id="teleportBtn" class="flex-1 bg-black text-white text-sm font-semibold py-4 hover:bg-gray-800 transition-colors uppercase tracking-widest shadow-sm">
+                            Teleport
+                        </button>
+                        <button id="copyBtn" class="px-6 border-2 border-gray-100 text-gray-500 hover:border-black hover:text-black transition-colors text-xs font-bold uppercase tracking-widest">
+                            Copy
+                        </button>
+                    </div>
                 </div>
                 
-                <div id="historyList" class="space-y-4"></div>
-                
-                <div id="emptyHistory" class="text-center py-10 hidden">
-                    <p class="text-gray-300 text-lg font-light">No teleport history.</p>
-                </div>
-            </div>
-
-            <!-- Favorites Column -->
-            <div class="space-y-6 fade-in flex flex-col h-full">
-                <div class="border-b border-gray-100 pb-2">
-                    <h2 class="text-sm font-bold uppercase tracking-widest text-black">Favorites</h2>
-                </div>
-
-                <!-- Import (Fixed Layout) -->
-                <div class="flex items-center space-x-2 w-full">
-                    <input type="text" id="importUrlInput" 
-                        placeholder="Paste wplace link to save..." 
-                        class="flex-1 bg-transparent text-sm py-2 border-b border-gray-200 focus:border-black outline-none transition-colors duration-300 placeholder-gray-300">
-                    <button id="importUrlBtn" class="px-4 py-2 border border-gray-200 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:border-black hover:text-black transition-colors whitespace-nowrap">
-                        Save
-                    </button>
-                </div>
-
-                <div id="favoritesList" class="space-y-4 flex-grow"></div>
-                
-                <div id="emptyFavorites" class="text-center py-10 hidden">
-                    <p class="text-gray-300 text-lg font-light">Paste wplace link or star a history item</p>
-                </div>
-
-                <!-- Data Management Footer -->
-                <div class="pt-6 mt-auto flex justify-end space-x-4 border-t border-gray-50">
-                     <button id="exportBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-black transition-colors" title="Download Favorites">
-                        Export JSON
-                    </button>
-                    <button id="importJsonBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-black transition-colors" title="Load Favorites">
-                        Import JSON
-                    </button>
-                    <input type="file" id="jsonFileInput" accept=".json" class="hidden">
-                </div>
+                <input type="text" id="rawUrl" readonly class="sr-only">
             </div>
         </div>
-
-        <!-- Homepage Link Footer -->
-        <div class="w-full text-center pt-8 border-t border-transparent">
-             <a href="https://42rk.github.io/" target="_blank" class="text-[10px] font-medium text-gray-300 hover:text-black transition-colors no-underline tracking-widest uppercase">
-                more at 42rk.github.io
-            </a>
-        </div>
-
     </div>
+
+    <!-- Scrollable Content Area -->
+    <main id="scroll-content" class="flex-1 overflow-y-auto w-full">
+        <div class="max-w-4xl mx-auto w-full px-4 sm:px-6 py-12">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <!-- History Column -->
+                <div class="space-y-6 fade-in">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2 bg-white sticky top-0 z-10 pt-2">
+                        <h2 class="text-sm font-bold uppercase tracking-widest text-black">History</h2>
+                        <button id="clearHistoryBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-red-500 transition-colors">Clear</button>
+                    </div>
+                    
+                    <div id="historyList" class="space-y-4"></div>
+                    <div id="emptyHistory" class="text-center py-10 hidden">
+                        <p class="text-gray-300 text-lg font-light">No teleport history.</p>
+                    </div>
+                </div>
+
+                <!-- Favorites Column -->
+                <div class="space-y-6 fade-in flex flex-col h-full">
+                    <div class="border-b border-gray-100 pb-2 bg-white sticky top-0 z-10 pt-2">
+                        <h2 class="text-sm font-bold uppercase tracking-widest text-black">Favorites</h2>
+                    </div>
+
+                    <div class="flex items-center space-x-2 w-full">
+                        <input type="text" id="importUrlInput" placeholder="Paste wplace link to save..." class="flex-1 bg-transparent text-sm py-2 border-b border-gray-200 focus:border-black outline-none transition-colors duration-300 placeholder-gray-300">
+                        <button id="importUrlBtn" class="px-4 py-2 border border-gray-200 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:border-black hover:text-black transition-colors whitespace-nowrap">Save</button>
+                    </div>
+
+                    <div id="favoritesList" class="space-y-4 flex-grow"></div>
+                    
+                    <div id="emptyFavorites" class="text-center py-10 hidden">
+                        <p class="text-gray-300 text-lg font-light">Paste wplace link or star a history item</p>
+                    </div>
+
+                    <div class="pt-6 mt-auto flex justify-end space-x-4 border-t border-gray-50">
+                        <button id="exportBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-black transition-colors" title="Download Favorites">Export JSON</button>
+                        <button id="importJsonBtn" class="text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-black transition-colors" title="Load Favorites">Import JSON</button>
+                        <input type="file" id="jsonFileInput" accept=".json" class="hidden">
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full text-center pt-16 pb-8 border-t border-transparent">
+                 <a href="https://42rk.github.io/" target="_blank" class="text-[10px] font-medium text-gray-300 hover:text-black transition-colors no-underline tracking-widest uppercase">
+                    more at 42rk.github.io
+                </a>
+            </div>
+        </div>
+    </main>
 
     <!-- Minimal Toast -->
     <div id="toast" class="fixed top-0 left-0 w-full bg-black text-white text-xs font-medium py-3 text-center transform -translate-y-full transition-transform duration-300 z-50 tracking-widest">
@@ -223,7 +252,6 @@
         const LAT_NORTH = 85.05113, LAT_SOUTH = -85.05113;
         const WPLACE_URL = "https://wplace.live";
 
-        // Projection Setup
         proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs");
         proj4.defs("EPSG:3857", "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs");
 
@@ -261,10 +289,15 @@
             emptyFavorites: document.getElementById("emptyFavorites"),
             clearHistoryBtn: document.getElementById("clearHistoryBtn"),
 
-            // Data Management
             exportBtn: document.getElementById("exportBtn"),
             importJsonBtn: document.getElementById("importJsonBtn"),
-            jsonFileInput: document.getElementById("jsonFileInput")
+            jsonFileInput: document.getElementById("jsonFileInput"),
+            
+            // Layout Elements
+            topPanel: document.getElementById("top-panel"),
+            scrollContent: document.getElementById("scroll-content"),
+            compactCoords: document.getElementById("compactCoords"),
+            compactZoom: document.getElementById("compactZoom")
         };
 
         // --- STATE ---
@@ -338,6 +371,10 @@
             els.zoomValue.textContent = zoom.toFixed(2);
             els.coordPreview.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
             
+            // Update Compact Info
+            els.compactCoords.textContent = `C: ${cx},${cy} • P: ${px},${py}`;
+            els.compactZoom.textContent = `Z: ${zoom.toFixed(2)}`;
+
             return { url, cx, cy, px, py, zoom };
         }
 
@@ -348,7 +385,8 @@
             inputs.py.value = py;
             inputs.zoom.value = zoom;
             updateLink();
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            // Scroll to top of content area to indicate refresh, but keep header visible
+            els.scrollContent.scrollTo({ top: 0, behavior: "smooth" });
         }
 
         // --- RENDERERS ---
@@ -424,7 +462,6 @@
                 favoritesLog.forEach((item, idx) => els.favoritesList.appendChild(createListItem(item, 'favorites', idx)));
             }
 
-            // Save
             localStorage.setItem('wplace_history', JSON.stringify(historyLog));
             localStorage.setItem('wplace_favorites', JSON.stringify(favoritesLog));
         }
@@ -447,21 +484,16 @@
             }
         }
 
-        // Inline Delete Toggle Logic
         window.toggleDelete = (btn, type, id) => {
-            // If already confirming, do the delete
             if (btn.dataset.confirming === "true") {
                 deleteItem(type, id);
                 return;
             }
-
-            // Otherwise, enter confirmation mode
             btn.dataset.confirming = "true";
-            btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`; // Checkmark
+            btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
             btn.classList.remove("text-gray-300", "hover:text-red-500");
             btn.classList.add("text-red-600", "bg-red-50", "rounded");
             
-            // Auto-reset after 3 seconds
             setTimeout(() => {
                 if (btn && document.body.contains(btn)) {
                     btn.dataset.confirming = "false";
@@ -481,30 +513,19 @@
             render();
         }
 
-        // Inline Rename Logic
         window.startRename = (id) => {
             const titleEl = document.getElementById(`title-${id}`);
             const currentName = titleEl.innerText;
-            
-            // Swap text for input
             const input = document.createElement('input');
             input.type = 'text';
             input.value = currentName;
             input.className = 'inline-edit font-medium text-black';
-            
-            // Handlers
             input.onblur = () => finishRename(id, input.value, currentName);
             input.onkeydown = (e) => {
-                if (e.key === 'Enter') {
-                    input.blur();
-                } else if (e.key === 'Escape') {
-                    input.value = currentName; // Revert
-                    finishRename(id, currentName, currentName);
-                }
-                e.stopPropagation(); // Prevent global listeners
+                if (e.key === 'Enter') input.blur();
+                else if (e.key === 'Escape') { input.value = currentName; finishRename(id, currentName, currentName); }
+                e.stopPropagation();
             };
-            
-            // Replace and Focus
             titleEl.innerHTML = '';
             titleEl.appendChild(input);
             input.focus();
@@ -514,11 +535,7 @@
         function finishRename(id, newName, oldName) {
             const fav = favoritesLog.find(f => f.id === id);
             if (!fav) return;
-
-            const finalName = newName.trim() || oldName; // Don't allow empty
-            fav.name = finalName;
-            
-            // Re-render to persist and update any history items that use this name
+            fav.name = newName.trim() || oldName;
             render(); 
             saveFavorites();
         }
@@ -526,110 +543,56 @@
         window.addToFav = (id) => {
             const item = historyLog.find(i => i.id === id);
             if (!item) return;
-            
             if (favoritesLog.some(f => f.cx === item.cx && f.cy === item.cy && f.px === item.px && f.py === item.py)) {
                 showToast("Already in favorites");
                 return;
             }
-
-            // Add with default name first
             const newId = Date.now();
-            const defaultName = `Chunk ${item.cx}, ${item.cy}`;
-            
-            favoritesLog.unshift({
-                ...item,
-                id: newId,
-                name: defaultName
-            });
-            
+            favoritesLog.unshift({ ...item, id: newId, name: `Chunk ${item.cx}, ${item.cy}` });
             saveFavorites();
             render();
             showToast("Added to Favorites");
-            
-            // Immediately trigger rename on the new item
-            // Using timeout to ensure DOM is ready
-            setTimeout(() => {
-                window.startRename(newId);
-            }, 50);
+            setTimeout(() => window.startRename(newId), 50);
         }
 
         function saveFavorites() {
             localStorage.setItem('wplace_favorites', JSON.stringify(favoritesLog));
         }
 
-        // --- EXPORT / IMPORT LOGIC ---
-
         function exportFavorites() {
-            if (favoritesLog.length === 0) {
-                showToast("No favorites to export");
-                return;
-            }
+            if (favoritesLog.length === 0) { showToast("No favorites"); return; }
             const dataStr = JSON.stringify(favoritesLog, null, 2);
             const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = 'wplace_favorites.json';
-            
             const linkElement = document.createElement('a');
             linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.setAttribute('download', 'wplace_favorites.json');
             linkElement.click();
         }
 
         function importFavorites(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const importedData = JSON.parse(e.target.result);
                     if (!Array.isArray(importedData)) throw new Error("Invalid format");
-
                     let addedCount = 0;
-                    
-                    // Merge Strategy: Append only new unique coordinates
                     importedData.forEach(item => {
-                        // Check if valid structure
-                        if(typeof item.cx === 'undefined' || typeof item.cy === 'undefined') return;
-
-                        const exists = favoritesLog.some(f => 
-                            f.cx === item.cx && 
-                            f.cy === item.cy && 
-                            f.px === item.px && 
-                            f.py === item.py
-                        );
-
+                        if(typeof item.cx === 'undefined') return;
+                        const exists = favoritesLog.some(f => f.cx === item.cx && f.cy === item.cy && f.px === item.px && f.py === item.py);
                         if (!exists) {
-                            // Give it a new unique ID to avoid collision
-                            favoritesLog.unshift({
-                                ...item,
-                                id: Date.now() + Math.random(), 
-                                timestamp: item.timestamp || new Date().toISOString()
-                            });
+                            favoritesLog.unshift({ ...item, id: Date.now() + Math.random(), timestamp: item.timestamp || new Date().toISOString() });
                             addedCount++;
                         }
                     });
-
-                    if (addedCount > 0) {
-                        saveFavorites();
-                        render();
-                        showToast(`Imported ${addedCount} locations`);
-                    } else {
-                        showToast("No new locations found");
-                    }
-
-                } catch(err) {
-                    console.error(err);
-                    showToast("Error reading file");
-                }
-                // Reset input
+                    if (addedCount > 0) { saveFavorites(); render(); showToast(`Imported ${addedCount}`); } 
+                    else { showToast("No new locations"); }
+                } catch(err) { showToast("Error reading file"); }
                 event.target.value = '';
             };
             reader.readAsText(file);
         }
-
-
-        // --- INITIALIZATION ---
 
         function init() {
             try {
@@ -637,19 +600,13 @@
                 const f = localStorage.getItem('wplace_favorites');
                 if (h) historyLog = JSON.parse(h);
                 if (f) favoritesLog = JSON.parse(f);
-            } catch (e) {
-                console.error("Storage corrupt", e);
-            }
+            } catch (e) { console.error(e); }
 
             Object.values(inputs).forEach(el => el.addEventListener('input', updateLink));
 
             els.teleportBtn.addEventListener('click', () => {
                 const data = updateLink();
-                historyLog.unshift({
-                    id: Date.now(),
-                    timestamp: new Date().toISOString(),
-                    ...data
-                });
+                historyLog.unshift({ id: Date.now(), timestamp: new Date().toISOString(), ...data });
                 if (historyLog.length > 50) historyLog.pop();
                 render();
                 window.open(data.url, '_blank');
@@ -662,15 +619,11 @@
             });
 
             els.clearHistoryBtn.addEventListener('click', () => {
-                // Inline confirmation for Clear All button
                 const btn = els.clearHistoryBtn;
                 if (btn.innerText === "CLEAR") {
                      btn.innerText = "CONFIRM?";
                      btn.classList.add("text-red-500");
-                     setTimeout(() => {
-                         btn.innerText = "CLEAR";
-                         btn.classList.remove("text-red-500");
-                     }, 3000);
+                     setTimeout(() => { btn.innerText = "CLEAR"; btn.classList.remove("text-red-500"); }, 3000);
                 } else {
                     historyLog = [];
                     render();
@@ -682,63 +635,46 @@
             els.importBtn.addEventListener('click', () => {
                 const val = els.importInput.value.trim();
                 if(!val) return;
-                
                 try {
                     const url = new URL(val);
                     const params = new URLSearchParams(url.search);
                     const lat = parseFloat(params.get("lat"));
                     const lng = parseFloat(params.get("lng"));
                     const zoom = parseFloat(params.get("zoom")) || 15.73;
-
-                    if(isNaN(lat) || isNaN(lng)) throw new Error("Invalid coords");
-
+                    if(isNaN(lat) || isNaN(lng)) throw new Error();
                     const [gPx, gPy] = lonLatToPixel(lng, lat);
                     const cx = Math.floor(gPx / N_TILE_PIXELS_X);
                     const cy = Math.floor(gPy / N_TILE_PIXELS_Y);
-                    
-                    if(cx < 0 || cx >= N_TILES_X || cy < 0 || cy >= N_TILES_Y) {
-                        showToast("Out of bounds");
-                        return;
-                    }
-                    
+                    if(cx < 0 || cx >= N_TILES_X || cy < 0 || cy >= N_TILES_Y) { showToast("Out of bounds"); return; }
                     const px = Math.floor(gPx % N_TILE_PIXELS_X);
                     const py = Math.floor(gPy % N_TILE_PIXELS_Y);
-
-                    // Add with default name then rename
                     const newId = Date.now();
-                    const defaultName = `Imported ${cx}/${cy}`;
-
-                    favoritesLog.unshift({
-                        id: newId,
-                        name: defaultName,
-                        cx, cy, 
-                        px, py,
-                        zoom
-                    });
-                    
+                    favoritesLog.unshift({ id: newId, name: `Imported ${cx}/${cy}`, cx, cy, px, py, zoom });
                     render();
                     els.importInput.value = '';
                     showToast("Location Saved");
-                    
-                    // Auto-rename
                     setTimeout(() => window.startRename(newId), 50);
-
-                } catch(e) {
-                    showToast("Invalid URL");
-                }
+                } catch(e) { showToast("Invalid URL"); }
             });
 
-            // Export / Import Events
             els.exportBtn.addEventListener('click', exportFavorites);
             els.importJsonBtn.addEventListener('click', () => els.jsonFileInput.click());
             els.jsonFileInput.addEventListener('change', importFavorites);
 
             updateLink();
             render();
+
+            // Compact Mode Logic on Scroll Container
+            els.scrollContent.addEventListener('scroll', () => {
+                if (els.scrollContent.scrollTop > 20) {
+                    els.topPanel.classList.add('compact');
+                } else {
+                    els.topPanel.classList.remove('compact');
+                }
+            });
         }
 
         init();
-
     </script>
 </body>
 </html>
